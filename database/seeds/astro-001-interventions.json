@@ -1,0 +1,42 @@
+[
+  {
+    "id": "INT-001",
+    "user_id": "ASTRO-001",
+    "drift_event_id": "DRIFT-001",
+    "created_at": "2080-04-10T19:00:00Z",
+    "type": "music_break",
+    "message": "Alex, tu m'as dit que la musique t'aide à décompresser. Aurais-tu envie d'écouter un morceau que tu apprécies pendant une courte pause ?",
+    "accepted": true,
+    "completed": true
+  },
+  {
+    "id": "INT-002",
+    "user_id": "ASTRO-001",
+    "drift_event_id": "DRIFT-001",
+    "created_at": "2080-04-11T19:00:00Z",
+    "type": "physical_activity",
+    "message": "Tu m'as dit qu'un peu de sport t'aide à décompresser. Si tu en as envie, souhaites-tu prévoir cinq minutes d'activité douce dans ton créneau habituel ?",
+    "accepted": true,
+    "completed": true
+  },
+  {
+    "id": "INT-003",
+    "user_id": "ASTRO-001",
+    "drift_event_id": "DRIFT-002",
+    "created_at": "2080-04-15T19:00:00Z",
+    "type": "quiet_time",
+    "message": "Ton sommeil, ton activité et tes échanges ont changé ces derniers jours. Tu m'as dit apprécier un peu de temps seul avant de parler d'un sujet difficile. Préfères-tu vingt minutes tranquilles avant que nous reprenions la conversation ?",
+    "accepted": true,
+    "completed": true
+  },
+  {
+    "id": "INT-004",
+    "user_id": "ASTRO-001",
+    "drift_event_id": "DRIFT-002",
+    "created_at": "2080-04-15T19:25:00Z",
+    "type": "calm_conversation",
+    "message": "Alex, je suis disponible si tu souhaites parler calmement de ces derniers jours. Nous pouvons aussi parler de ta famille ou d'astronomie, si tu en as envie. Souhaites-tu discuter maintenant ?",
+    "accepted": false,
+    "completed": false
+  }
+]

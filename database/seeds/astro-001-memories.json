@@ -1,0 +1,56 @@
+[
+  {
+    "id": "MEM-001",
+    "user_id": "ASTRO-001",
+    "category": "support_preference",
+    "content": "La musique aide Alex lorsqu'il est stressé.",
+    "importance": 8,
+    "source": "user_chat",
+    "created_at": "2080-04-01T07:10:00Z"
+  },
+  {
+    "id": "MEM-002",
+    "user_id": "ASTRO-001",
+    "category": "support_preference",
+    "content": "Une courte activité physique aide Alex à décompresser.",
+    "importance": 8,
+    "source": "user_chat",
+    "created_at": "2080-04-01T07:12:00Z"
+  },
+  {
+    "id": "MEM-003",
+    "user_id": "ASTRO-001",
+    "category": "communication_preference",
+    "content": "Après un conflit, Alex préfère généralement avoir un peu de temps seul avant de discuter.",
+    "importance": 8,
+    "source": "user_chat",
+    "created_at": "2080-04-01T07:14:00Z"
+  },
+  {
+    "id": "MEM-004",
+    "user_id": "ASTRO-001",
+    "category": "communication_preference",
+    "content": "Alex préfère discuter de sujets personnels le soir, vers 19 h UTC, dans une conversation calme.",
+    "importance": 7,
+    "source": "user_chat",
+    "created_at": "2080-04-01T07:16:00Z"
+  },
+  {
+    "id": "MEM-005",
+    "user_id": "ASTRO-001",
+    "category": "motivation",
+    "content": "La famille d'Alex est une source importante de motivation.",
+    "importance": 9,
+    "source": "user_chat",
+    "created_at": "2080-04-01T07:18:00Z"
+  },
+  {
+    "id": "MEM-006",
+    "user_id": "ASTRO-001",
+    "category": "interest",
+    "content": "Alex aime parler d'astronomie pendant ses moments de détente.",
+    "importance": 6,
+    "source": "user_chat",
+    "created_at": "2080-04-01T07:20:00Z"
+  }
+]

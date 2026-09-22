@@ -1,0 +1,12 @@
+{
+  "user_id": "ASTRO-001",
+  "calculated_at": "2026-09-22T00:00:00Z",
+  "sleep_hours_avg": 7.4,
+  "mood_avg": 7.2,
+  "stress_avg": 3.5,
+  "fatigue_avg": 3.8,
+  "energy_avg": 7.0,
+  "social_level_avg": 6.5,
+  "activity_minutes_avg": 45.0,
+  "observation_days": 14
+}

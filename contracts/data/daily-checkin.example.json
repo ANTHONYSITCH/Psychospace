@@ -1,0 +1,11 @@
+{
+  "user_id": "ASTRO-001",
+  "timestamp": "2026-09-22T18:00:00Z",
+  "sleep_hours": 6.0,
+  "mood": 5,
+  "stress": 7,
+  "fatigue": 7,
+  "energy": 4,
+  "social_level": 4,
+  "activity_minutes": 25
+}

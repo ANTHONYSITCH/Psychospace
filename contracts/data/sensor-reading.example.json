@@ -1,0 +1,7 @@
+{
+  "user_id": "ASTRO-001",
+  "sensor_type": "heart_rate",
+  "value": 82,
+  "unit": "bpm",
+  "timestamp": "2026-09-22T17:55:00Z"
+}

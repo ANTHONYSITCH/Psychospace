@@ -1,0 +1,10 @@
+{
+  "id": "INT-001",
+  "user_id": "ASTRO-001",
+  "drift_event_id": "DRIFT-001",
+  "created_at": "2026-09-22T19:00:00Z",
+  "type": "music_break",
+  "message": "Alex, souhaites-tu prendre dix minutes pour écouter une musique que tu apprécies ?",
+  "accepted": false,
+  "completed": false
+}

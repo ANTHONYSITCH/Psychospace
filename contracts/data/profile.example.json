@@ -1,0 +1,10 @@
+{
+  "user_id": "ASTRO-001",
+  "first_name": "Alex",
+  "age": 34,
+  "mission_id": "MISSION-001",
+  "normal_sleep_hours": 7.5,
+  "preferred_support": "music",
+  "preferred_contact_time": "19:00:00Z",
+  "interests": ["music", "reading", "astronomy"]
+}

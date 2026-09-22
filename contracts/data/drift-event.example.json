@@ -1,0 +1,11 @@
+{
+  "id": "DRIFT-001",
+  "user_id": "ASTRO-001",
+  "detected_at": "2026-09-22T18:01:00Z",
+  "level": "moderate",
+  "drift_score": 0.65,
+  "confidence": 0.75,
+  "affected_signals": ["sleep_hours", "stress", "fatigue", "energy"],
+  "explanation": "Le bilan du jour indique un sommeil plus court, un stress et une fatigue plus élevés, ainsi qu'une énergie plus faible que les moyennes personnelles des 14 jours précédents.",
+  "status": "open"
+}
