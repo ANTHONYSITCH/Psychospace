@@ -1,0 +1,752 @@
+import os
+import pandas as pd
+import numpy as np
+import psycopg2
+from datetime import datetime, timedelta
+
+
+# ============================================================
+# CONFIGURATION POSTGRESQL (depuis variables d'environnement)
+# ============================================================
+
+DB_CONFIG = {
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", 5432)),
+    "database": os.getenv("POSTGRES_DB", "astronaut_monitoring"),
+    "user": os.getenv("POSTGRES_USER", "postgres"),
+    "password": os.getenv("POSTGRES_PASSWORD", "postgres")
+}
+
+
+# ============================================================
+# 1. GENERATION DES DONNEES BRUTES
+# ============================================================
+
+def generate_questionnaire_data():
+
+    astronauts = [
+        {
+            "id": 1,
+            "first_name": "Thomas",
+            "last_name": "Bernard"
+        },
+        {
+            "id": 2,
+            "first_name": "Sarah",
+            "last_name": "Martin"
+        },
+        {
+            "id": 3,
+            "first_name": "Alex",
+            "last_name": "Dupont"
+        }
+    ]
+
+    rows = []
+
+    start_date = datetime(2026, 9, 1)
+
+    for astronaut in astronauts:
+
+        for day in range(7):
+
+            date = start_date + timedelta(days=day)
+
+            # ------------------------------------------------
+            # Thomas : tendance à la fatigue
+            # ------------------------------------------------
+
+            if astronaut["id"] == 1:
+
+                sleep = 7 - day * 0.3
+                fatigue = 3 + day
+                stress = 3 + day
+                energy = 8 - day * 0.5
+                mood = 8 - day * 0.3
+                motivation = 8 - day * 0.2
+                concentration = 8 - day * 0.4
+
+            # ------------------------------------------------
+            # Sarah : situation relativement stable
+            # ------------------------------------------------
+
+            elif astronaut["id"] == 2:
+
+                sleep = 7
+                fatigue = 3 + (day % 2)
+                stress = 4
+                energy = 7
+                mood = 7
+                motivation = 8
+                concentration = 7
+
+            # ------------------------------------------------
+            # Alex : amélioration progressive
+            # ------------------------------------------------
+
+            else:
+
+                sleep = 6 + day * 0.2
+                fatigue = 7 - day * 0.5
+                stress = 7 - day * 0.5
+                energy = 4 + day * 0.5
+                mood = 5 + day * 0.5
+                motivation = 5 + day * 0.4
+                concentration = 5 + day * 0.5
+
+            rows.append({
+                "astronaut_id": astronaut["id"],
+                "checkin_date": date.date(),
+
+                "sleep_duration_hours": round(sleep, 2),
+                "sleep_quality": round(np.clip(7 - fatigue * 0.4, 0, 10)),
+
+                "fatigue": round(np.clip(fatigue, 0, 10)),
+                "energy": round(np.clip(energy, 0, 10)),
+                "stress": round(np.clip(stress, 0, 10)),
+
+                "stress_source": "workload",
+
+                "mood": round(np.clip(mood, 0, 10)),
+                "motivation": round(np.clip(motivation, 0, 10)),
+                "concentration": round(np.clip(concentration, 0, 10)),
+
+                "unusual_difficulty": "fatigue"
+                if fatigue >= 7 else "none",
+
+                "overall_state": round(
+                    np.clip(
+                        (
+                            energy
+                            + mood
+                            + motivation
+                            + concentration
+                            + (10 - fatigue)
+                            + (10 - stress)
+                        ) / 6,
+                        0,
+                        10
+                    )
+                ),
+
+                "compared_to_yesterday":
+                    "worse" if day > 0 and fatigue > 5 else "stable",
+
+                "comment":
+                    "Difficulté à maintenir la concentration."
+                    if concentration <= 5
+                    else "État général satisfaisant."
+            })
+
+    return pd.DataFrame(rows)
+
+
+# ============================================================
+# 2. NETTOYAGE DES QUESTIONNAIRES
+# ============================================================
+
+def clean_questionnaire_data(df):
+
+    print("\n[ETL] Nettoyage des questionnaires...")
+
+    # --------------------------------------------------------
+    # Suppression des doublons
+    # --------------------------------------------------------
+
+    df = df.drop_duplicates(
+        subset=["astronaut_id", "checkin_date"]
+    )
+
+    # --------------------------------------------------------
+    # Conversion des types
+    # --------------------------------------------------------
+
+    numeric_columns = [
+        "sleep_duration_hours",
+        "sleep_quality",
+        "fatigue",
+        "energy",
+        "stress",
+        "mood",
+        "motivation",
+        "concentration",
+        "overall_state"
+    ]
+
+    for column in numeric_columns:
+        df[column] = pd.to_numeric(
+            df[column],
+            errors="coerce"
+        )
+
+    # --------------------------------------------------------
+    # Gestion des valeurs manquantes
+    # --------------------------------------------------------
+
+    for column in numeric_columns:
+
+        if df[column].isna().any():
+
+            median = df[column].median()
+
+            df[column] = df[column].fillna(median)
+
+    # --------------------------------------------------------
+    # Limitation des valeurs 0-10
+    # --------------------------------------------------------
+
+    score_columns = [
+        "sleep_quality",
+        "fatigue",
+        "energy",
+        "stress",
+        "mood",
+        "motivation",
+        "concentration",
+        "overall_state"
+    ]
+
+    for column in score_columns:
+
+        df[column] = df[column].clip(
+            lower=0,
+            upper=10
+        )
+
+    # --------------------------------------------------------
+    # Durée du sommeil
+    # --------------------------------------------------------
+
+    df["sleep_duration_hours"] = df[
+        "sleep_duration_hours"
+    ].clip(
+        lower=0,
+        upper=24
+    )
+
+    # --------------------------------------------------------
+    # Arrondi
+    # --------------------------------------------------------
+
+    df["sleep_duration_hours"] = df[
+        "sleep_duration_hours"
+    ].round(2)
+
+    print(
+        f"[ETL] {len(df)} questionnaires propres."
+    )
+
+    return df
+
+
+# ============================================================
+# 3. GENERATION DES DONNEES CAPTEURS
+# ============================================================
+
+def generate_sensor_data():
+
+    sensors = [
+        {
+            "id": 1,
+            "name": "Temperature Sensor",
+            "type": "temperature",
+            "unit": "°C",
+            "location": "habitat"
+        },
+        {
+            "id": 2,
+            "name": "Humidity Sensor",
+            "type": "humidity",
+            "unit": "%",
+            "location": "habitat"
+        },
+        {
+            "id": 3,
+            "name": "CO2 Sensor",
+            "type": "co2",
+            "unit": "ppm",
+            "location": "habitat"
+        },
+        {
+            "id": 4,
+            "name": "Pressure Sensor",
+            "type": "pressure",
+            "unit": "hPa",
+            "location": "habitat"
+        },
+        {
+            "id": 5,
+            "name": "Light Sensor",
+            "type": "light",
+            "unit": "lux",
+            "location": "habitat"
+        },
+        {
+            "id": 6,
+            "name": "Noise Sensor",
+            "type": "noise",
+            "unit": "dB",
+            "location": "habitat"
+        }
+    ]
+
+    rows = []
+
+    start = datetime(2026, 9, 1)
+
+    for day in range(7):
+
+        for hour in range(0, 24, 4):
+
+            timestamp = start + timedelta(
+                days=day,
+                hours=hour
+            )
+
+            # Valeurs simulées réalistes
+
+            rows.append({
+                "sensor_id": 1,
+                "recorded_at": timestamp,
+                "value": round(
+                    np.random.normal(22.5, 0.8),
+                    2
+                )
+            })
+
+            rows.append({
+                "sensor_id": 2,
+                "recorded_at": timestamp,
+                "value": round(
+                    np.random.normal(48, 4),
+                    2
+                )
+            })
+
+            rows.append({
+                "sensor_id": 3,
+                "recorded_at": timestamp,
+                "value": round(
+                    np.random.normal(800, 80),
+                    2
+                )
+            })
+
+            rows.append({
+                "sensor_id": 4,
+                "recorded_at": timestamp,
+                "value": round(
+                    np.random.normal(1012, 2),
+                    2
+                )
+            })
+
+            rows.append({
+                "sensor_id": 5,
+                "recorded_at": timestamp,
+                "value": round(
+                    np.random.normal(700, 150),
+                    2
+                )
+            })
+
+            rows.append({
+                "sensor_id": 6,
+                "recorded_at": timestamp,
+                "value": round(
+                    np.random.normal(45, 5),
+                    2
+                )
+            })
+
+    return pd.DataFrame(rows), sensors
+
+
+# ============================================================
+# 4. NETTOYAGE DES CAPTEURS
+# ============================================================
+
+def clean_sensor_data(df):
+
+    print("\n[ETL] Nettoyage des capteurs...")
+
+    # Suppression doublons
+
+    df = df.drop_duplicates(
+        subset=["sensor_id", "recorded_at"]
+    )
+
+    # Conversion
+
+    df["value"] = pd.to_numeric(
+        df["value"],
+        errors="coerce"
+    )
+
+    # Valeurs manquantes
+
+    df["value"] = df["value"].fillna(
+        df.groupby("sensor_id")["value"]
+        .transform("median")
+    )
+
+    # --------------------------------------------------------
+    # Contrôle des valeurs aberrantes par type de capteur
+    # --------------------------------------------------------
+
+    limits = {
+
+        1: (15, 30),       # température
+
+        2: (20, 80),       # humidité
+
+        3: (300, 2000),    # CO2
+
+        4: (900, 1100),    # pression
+
+        5: (0, 20000),     # lumière
+
+        6: (20, 100)       # bruit
+    }
+
+    cleaned_rows = []
+
+    for _, row in df.iterrows():
+
+        sensor_id = row["sensor_id"]
+
+        minimum, maximum = limits[sensor_id]
+
+        value = row["value"]
+
+        if value < minimum or value > maximum:
+
+            row["quality_status"] = "invalid"
+
+        else:
+
+            row["quality_status"] = "valid"
+
+        cleaned_rows.append(row)
+
+    df = pd.DataFrame(cleaned_rows)
+
+    # On conserve les mesures mais on les marque.
+    # Cela permet à l'IA de connaître la qualité des données.
+
+    print(
+        f"[ETL] {len(df)} mesures capteurs traitées."
+    )
+
+    return df
+
+
+# ============================================================
+# 5. CONNEXION POSTGRESQL
+# ============================================================
+
+def connect_database():
+
+    return psycopg2.connect(
+        **DB_CONFIG
+    )
+
+
+# ============================================================
+# 6. INSERTION DES DONNEES
+# ============================================================
+
+def insert_data(
+    questionnaire_df,
+    sensor_df,
+    sensors
+):
+
+    print("\n[ETL] Connexion PostgreSQL...")
+
+    connection = connect_database()
+
+    cursor = connection.cursor()
+
+    try:
+
+        # ----------------------------------------------------
+        # Mission
+        # ----------------------------------------------------
+
+        cursor.execute(
+            """
+            INSERT INTO missions
+            (
+                name,
+                description,
+                start_date,
+                status
+            )
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s
+            )
+            RETURNING id
+            """,
+            (
+                "Mars Simulation Mission",
+                "Simulation de surveillance quotidienne des astronautes.",
+                "2026-09-01",
+                "active"
+            )
+        )
+
+        mission_id = cursor.fetchone()[0]
+
+        print(
+            f"[DB] Mission créée : {mission_id}"
+        )
+
+        # ----------------------------------------------------
+        # Astronautes
+        # ----------------------------------------------------
+
+        astronaut_data = [
+
+            (
+                mission_id,
+                "Thomas",
+                "Bernard",
+                "thomas@example.com",
+                "DEMO_HASH_REPLACE_ME"
+            ),
+
+            (
+                mission_id,
+                "Sarah",
+                "Martin",
+                "sarah@example.com",
+                "DEMO_HASH_REPLACE_ME"
+            ),
+
+            (
+                mission_id,
+                "Alex",
+                "Dupont",
+                "alex@example.com",
+                "DEMO_HASH_REPLACE_ME"
+            )
+        ]
+
+        astronaut_ids = {}
+
+        for astronaut in astronaut_data:
+
+            cursor.execute(
+                """
+                INSERT INTO astronauts
+                (
+                    mission_id,
+                    first_name,
+                    last_name,
+                    email,
+                    password_hash
+                )
+                VALUES
+                (%s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                astronaut
+            )
+
+            database_id = cursor.fetchone()[0]
+
+            astronaut_ids[
+                astronaut[1]
+            ] = database_id
+
+        print("[DB] Astronautes créés.")
+
+        # ----------------------------------------------------
+        # Questionnaires
+        # ----------------------------------------------------
+
+        for _, row in questionnaire_df.iterrows():
+
+            cursor.execute(
+                """
+                INSERT INTO daily_checkins
+                (
+                    astronaut_id,
+                    checkin_date,
+                    sleep_duration_hours,
+                    sleep_quality,
+                    fatigue,
+                    energy,
+                    stress,
+                    stress_source,
+                    mood,
+                    motivation,
+                    concentration,
+                    unusual_difficulty,
+                    overall_state,
+                    compared_to_yesterday,
+                    comment
+                )
+                VALUES
+                (
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s
+                )
+                """,
+                (
+                    row["astronaut_id"],
+                    row["checkin_date"],
+                    row["sleep_duration_hours"],
+                    row["sleep_quality"],
+                    row["fatigue"],
+                    row["energy"],
+                    row["stress"],
+                    row["stress_source"],
+                    row["mood"],
+                    row["motivation"],
+                    row["concentration"],
+                    row["unusual_difficulty"],
+                    row["overall_state"],
+                    row["compared_to_yesterday"],
+                    row["comment"]
+                )
+            )
+
+        print("[DB] Questionnaires insérés.")
+
+        # ----------------------------------------------------
+        # Capteurs
+        # ----------------------------------------------------
+
+        sensor_db_ids = {}
+
+        for sensor in sensors:
+
+            cursor.execute(
+                """
+                INSERT INTO sensors
+                (
+                    mission_id,
+                    sensor_name,
+                    sensor_type,
+                    location,
+                    unit
+                )
+                VALUES
+                (%s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (
+                    mission_id,
+                    sensor["name"],
+                    sensor["type"],
+                    sensor["location"],
+                    sensor["unit"]
+                )
+            )
+
+            db_id = cursor.fetchone()[0]
+
+            sensor_db_ids[
+                sensor["id"]
+            ] = db_id
+
+        # ----------------------------------------------------
+        # Mesures capteurs
+        # ----------------------------------------------------
+
+        for _, row in sensor_df.iterrows():
+
+            cursor.execute(
+                """
+                INSERT INTO sensor_readings
+                (
+                    sensor_id,
+                    recorded_at,
+                    value,
+                    quality_status
+                )
+                VALUES
+                (%s, %s, %s, %s)
+                """,
+                (
+                    sensor_db_ids[row["sensor_id"]],
+                    row["recorded_at"],
+                    row["value"],
+                    row["quality_status"]
+                )
+            )
+
+        print("[DB] Mesures capteurs insérées.")
+
+        # ----------------------------------------------------
+        # Validation finale
+        # ----------------------------------------------------
+
+        connection.commit()
+
+        print("\n====================================")
+        print("PIPELINE ETL TERMINE")
+        print("====================================")
+
+    except Exception as error:
+
+        connection.rollback()
+
+        print(
+            "\n[ERREUR] Rollback effectué."
+        )
+
+        print(error)
+
+        raise
+
+    finally:
+
+        cursor.close()
+        connection.close()
+
+
+# ============================================================
+# 7. MAIN
+# ============================================================
+
+def main():
+
+    print("====================================")
+    print("ASTRONAUT MONITORING ETL")
+    print("====================================")
+
+    # Questionnaire
+
+    questionnaire = generate_questionnaire_data()
+
+    questionnaire = clean_questionnaire_data(
+        questionnaire
+    )
+
+    # Capteurs
+
+    sensor_data, sensors = generate_sensor_data()
+
+    sensor_data = clean_sensor_data(
+        sensor_data
+    )
+
+    # PostgreSQL
+
+    insert_data(
+        questionnaire,
+        sensor_data,
+        sensors
+    )
+
+
+if __name__ == "__main__":
+    main()
