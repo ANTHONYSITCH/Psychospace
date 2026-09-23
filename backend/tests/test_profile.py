@@ -80,6 +80,7 @@ class ProfileTests(unittest.TestCase):
     def test_only_requested_business_routes(self):
         paths = self.client.get("/openapi.json").json()["paths"]
         self.assertEqual(set(paths), {
+            "/api/interventions", "/api/interventions/{user_id}", "/api/interventions/{intervention_id}",
             "/api/chat", "/api/chat/{user_id}",
             "/health", "/api/profile/{user_id}", "/api/checkins",
             "/api/checkins/{user_id}", "/api/sensors", "/api/sensors/{user_id}",

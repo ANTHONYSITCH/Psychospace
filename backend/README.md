@@ -1,5 +1,86 @@
 # Backend PsychoSpace V0.1
 
+## Interventions personnalisées
+
+**PsychoSpace proposes. The astronaut decides.** Une intervention est une
+proposition de soutien librement acceptée ou refusée, jamais un diagnostic,
+traitement, prescription ou décision imposée.
+
+- Drift Engine : détecte les changements et reste la source de vérité.
+- Memory Vault : contient les préférences autorisées, modifiables par l'utilisateur.
+- Intervention Engine : sélectionne une action par règles déterministes explicables.
+- Ollama : assure la conversation et la contextualisation ; il n'est pas appelé
+  pour choisir ou enregistrer une intervention.
+
+| Route | Comportement |
+| --- | --- |
+| `GET /api/interventions/{user_id}` | Interventions de cet utilisateur, par created_at UTC croissant puis id croissant ; `[]` sans intervention, 404 si utilisateur inconnu. |
+| `POST /api/interventions` | Objet complet du contrat, id unique fourni par l'appelant, drift obligatoire du même utilisateur ; retourne l'objet avec 201. |
+| `PATCH /api/interventions/{intervention_id}` | Au moins accepted ou completed, exclusivement des booléens JSON ; champs omis inchangés. Retourne l'objet complet avec 200, 404 si absent. |
+
+Les trois routes figurent dans Swagger `/docs`. Le contrat définit un type
+textuel extensible, donc une chaîne non vide est acceptée sans enum inventée.
+Identifiants, message et type doivent être non vides, created_at est un timestamp
+UTC valide. `accepted` et `completed` sont stricts : ni null, ni 0/1, ni chaînes.
+Un drift inconnu donne 404 ; un drift d'un autre utilisateur, un id dupliqué,
+un champ supplémentaire ou un état incohérent donnent 400.
+`completed=true` exige `accepted=true`, y compris après fusion d'un PATCH.
+Pour retirer une acceptation déjà terminée, il faut aussi passer completed à false.
+Les autres champs, dont message et type, ne sont pas patchables. Chaque écriture
+est transactionnelle ; les booléens SQLite 0/1 sont retournés en booléens JSON.
+Le filtrage par utilisateur ne remplace pas une authentification, absente en V0.1.
+
+Le service interne `recommend_intervention(database_path, user_id)` lit le dernier
+drift SQLite par date puis id décroissants et les mémoires du même utilisateur.
+Il ne lit aucun seed pendant l'appel, n'écrit rien et ne recalcule pas le drift.
+Sans événement, il retourne `None` ; utilisateur inconnu : 404.
+
+Règles de sélection V0.1 :
+
+- Musique explicitement aidante + signal stress ou fatigue : `music_break`.
+- Activité physique explicitement aidante + activity_minutes/activity ou energy : `short_activity`.
+- Besoin d'espace ou préférence pour du temps seul : `quiet_break`, avec formulation
+  conditionnelle, sans supposer un conflit actuel.
+- Sans mémoire reconnue pertinente : pause calme générique, sans préférence attribuée.
+
+Les mémoires candidates doivent être explicites (`source` user, user_chat ou
+user_correction), dans une catégorie support_preference, coping_strategy ou,
+pour le besoin d'espace, communication_preference. Parmi les candidates :
+importance décroissante, puis id croissant à égalité. Aucun score additionnel,
+ML ou tirage aléatoire. Les mots et formulations reconnus sont limités en français
+et anglais ; les négations reconnues et les formulations inconnues sont écartées.
+Il s'agit de règles lexicales prudentes, pas d'une compréhension générale du texte.
+Les préférences conditionnelles restent conditionnelles dans la proposition.
+
+Le résultat interne fournit user_id, drift_event_id, type, message, memory_id et
+une justification contenant les signaux concernés et la citation exacte de la
+mémoire. Ces informations privées ne sont pas loggées. L'explication et memory_id
+ne sont ni des colonnes ni des champs ajoutés au contrat HTTP.
+L'appelant conserve uniquement les champs contractuels, ajoute son id, created_at,
+accepted et completed, puis crée explicitement l'intervention via POST. Aucune
+route de recommandation supplémentaire et aucune création automatique depuis le
+GET, le chat ou le démarrage ; le préchargement existant d'une base vide est inchangé.
+
+Exemple contractuel (choisir un id encore inutilisé) :
+
+```json
+{
+  "id": "INT-DEMO-MUSIC",
+  "user_id": "ASTRO-001",
+  "drift_event_id": "DRIFT-002",
+  "created_at": "2026-09-23T12:00:00Z",
+  "type": "music_break",
+  "message": "Si tu le souhaites, tu peux prendre quelques minutes pour écouter une musique que tu apprécies.",
+  "accepted": false,
+  "completed": false
+}
+```
+
+Après le POST, envoyer `{"accepted": true}` puis `{"completed": true}` au PATCH
+de cet id ; consulter ensuite le GET. Les tests utilisent exclusivement des bases
+temporaires et couvrent notamment l'isolation, les états, la persistance, l'ordre,
+les règles de recommandation et l'absence de création implicite.
+
 ## PsychoSpace Companion
 
 `POST /api/chat` reçoit `user_id` et `message` (chaînes non vides) et retourne
