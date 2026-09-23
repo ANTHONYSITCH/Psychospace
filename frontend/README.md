@@ -1,6 +1,6 @@
 # PsychoSpace · Foundation UI
 
-Phases 1 à 7A : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon et voix locale, Mon évolution, Empreinte de rythme, Mémoire et Accompagnement.
+Phases 1 à 7B : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon avec voix locale et microphone conditionnel, Mon évolution, Empreinte de rythme, Mémoire et Accompagnement.
 L’interface et les libellés d’accessibilité sont en français, avec dates et nombres
 au format français. Les noms techniques et les routes restent inchangés. Le niveau
 moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouton
@@ -8,6 +8,56 @@ moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouto
 Le dossier initial contenait seulement `.gitkeep` ; aucun framework ni style existant.
 React 19 + Vite 7, CSS natif, icônes SVG locales et polices système : aucun asset
 externe ni CDN à l'exécution.
+
+## Parler à PsychoSpace — Phase 7B
+
+`src/services/speechRecognition.js` utilise exclusivement `window.SpeechRecognition`
+avec une propriété native `processLocally` et `available({ langs: ['fr-FR'],
+processLocally: true })`. Les API absentes, anciennes ou uniquement préfixées
+restent désactivées. Aucune affectation à false et aucun repli vers le cloud.
+
+Le service distingue available, downloadable, downloading et unavailable. Le
+pack n'est installé que sur clic explicite avec les mêmes options locales, puis
+sa disponibilité est vérifiée à nouveau. Une installation n'ouvre jamais le micro.
+Si le navigateur annonce un téléchargement en cours, « Vérifier l’installation »
+actualise son état. Une erreur d'installation conserve l'accès au clavier.
+
+« Parler » arrête la synthèse avant de vérifier à nouveau le mode local et de
+démarrer la reconnaissance fr-FR ; `start()` déclenche la permission navigateur.
+L'état listening dépend de l'événement natif de démarrage. La transcription
+intermédiaire reste visible, puis le texte final est ajouté au brouillon existant,
+sans envoi automatique. « Arrêter » conserve le texte provisoire disponible à
+relire et annule la capture. Quitter Compagnon annule la capture et invalide les
+callbacks, y compris pendant une vérification asynchrone de disponibilité.
+L'envoi et la lecture sont bloqués pendant la capture ; le champ texte reste
+utilisable. Seul un clic Envoyer passe ensuite par le POST chat déjà existant.
+
+Aucun MediaRecorder, fichier audio, transfert audio au backend, mémoire automatique
+ou moteur de transcription externe. « Voix traitée sur cet appareil » n'apparaît
+que lorsque la disponibilité locale fr-FR est confirmée.
+
+Validation réelle du 23 septembre 2026 : Edge Windows 153, avec et sans fenêtre
+visible, expose processLocally, available et install ; `available()` pour fr-FR
+renvoie **unavailable**. Aucun pack n'a été installé et aucune capture n'a été
+lancée : le bouton est désactivé, le message explicatif affiché et le clavier
+reste actif. Aucun résultat de transcription réelle ni cycle complet depuis le
+micro ne peut être revendiqué dans cet environnement. Les parcours d'écoute,
+permissions, installation et transcription sont vérifiés avec des mocks uniquement
+dans les tests. La synthèse Hortense reste indépendante de cette limitation.
+Le parcours de secours au clavier a aussi été rejoué réellement avec Ollama :
+réponse confirmée par GET, lecture locale Microsoft Hortense fr-FR, événements
+start/end et retour attentive validés. Cela ne constitue pas un test microphone.
+Validation : 31 tests unitaires, 39 tests navigateur validés sur les exécutions
+complète et ciblées, quatre anciens tests d'écriture désactivés, build réussi.
+
+```powershell
+$env:PSYCHOSPACE_REAL_MIC = '1'
+npx playwright test tests/browser/recognition.spec.js
+Remove-Item Env:PSYCHOSPACE_REAL_MIC
+```
+
+Ce test ouvre Edge avec une fenêtre visible et rapporte ses capacités natives.
+Il ne simule pas une voix humaine et ne force aucun service de reconnaissance.
 
 ## Voix de PsychoSpace — Phase 7A
 
