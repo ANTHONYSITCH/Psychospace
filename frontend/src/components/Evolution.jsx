@@ -4,10 +4,16 @@ import { latest, number, percent } from '../overview'
 import { dailyRecords, fullDate, metricValue, monthLabel, recentSummary, rhythmMetrics, timeline, tracePath, visualDeviation } from '../evolution'
 import PsychoSpacePresence from './PsychoSpacePresence'
 import './Evolution.css'
+import RhythmFingerprint from './RhythmFingerprint'
 
 const signalNames = { sleep_hours: 'Sommeil', energy: 'Énergie', fatigue: 'Fatigue', activity_minutes: 'Activité', mood: 'Humeur', stress: 'Pression ressentie', social_level: 'Échanges', heart_rate: 'Rythme cardiaque', spo2: 'Oxygénation', movement: 'Mouvement' }
 
 export default function Evolution() {
+  const [view, setView] = useState('trace')
+  return <><div className="evolution-views" role="group" aria-label="Vue de ton évolution"><button aria-pressed={view === 'trace'} onClick={() => setView('trace')}>Trace dans le temps</button><button aria-pressed={view === 'fingerprint'} onClick={() => setView('fingerprint')}>Empreinte de rythme</button></div>{view === 'trace' ? <EvolutionTrace /> : <RhythmFingerprint />}</>
+}
+
+function EvolutionTrace() {
   const [state, setState] = useState({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
   const [month, setMonth] = useState('')

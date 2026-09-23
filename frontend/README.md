@@ -33,6 +33,32 @@ valeurs complètent les couleurs ; la trace défile horizontalement sur tablette
 Les tests navigateur vérifient les trois GET réels, les valeurs et la référence,
 le drift, les états vide/erreur/chargement et l'affichage étroit.
 
+## Empreinte de rythme — Phase 4B
+
+Depuis Mon évolution, le bouton « Empreinte de rythme » ouvre une comparaison
+organique SVG sans nouvelle route ni bibliothèque. Les mêmes trois GET réels
+fournissent la baseline, les check-ins et le dernier drift chronologique.
+La fenêtre contient exactement les trois derniers bilans dont le timestamp est
+inférieur ou égal à `detected_at` (microsecondes conservées), même si d'autres
+bilans plus récents existent. La valeur récente de chaque dimension est leur
+moyenne arithmétique, dans l'unité originale. Sans trois bilans complets ou sans
+référence positive pour les sept dimensions, l'état insuffisant est présenté.
+
+Le tracé utilise seulement pour le rendu un déplacement borné autour de la
+référence : `1 + 0.48 * tanh((valeur - référence) / référence)`. Les positions
+angulaires et la silhouette organique sont fixes ; aucune inversion ne classe
+les dimensions comme bonnes ou mauvaises. Les valeurs sources restent intactes.
+Le contour habituel reste pointillé et le récent continu. Les sept boutons
+numérotés donnent au clavier et au toucher les valeurs, unités et explications.
+Les anneaux discrets correspondent exclusivement à `affected_signals`.
+
+« Voir le changement » fait évoluer le contour récent en 1,8 seconde, en
+conservant la référence visible. « Revenir à la comparaison » termine la
+transition. Avec `prefers-reduced-motion`, la comparaison est immédiate, et une
+préférence modifiée pendant la transition arrête également le mouvement.
+L'explication, la date et l'indice secondaire viennent du drift backend : aucun
+calcul de drift, aucune génération Ollama et aucune écriture API sur cette vue.
+
 ## Lancement local
 
 Depuis la racine du dépôt, lancer le backend existant :
