@@ -1,0 +1,149 @@
+{
+  "entries": [
+    {
+      "title": "Règle de sécurité générale",
+      "category": "safety",
+      "content": "L'astronaute doit toujours prioriser les systèmes vitaux : oxygène, pression, énergie et communications. Toute anomalie d'un système critique impose une vérification immédiate, une journalisation et une communication claire avec le commandement de bord."
+    },
+    {
+      "title": "Système d'oxygène",
+      "category": "life_support",
+      "content": "Le système d'oxygène doit être maintenu au-dessus de 95 %. En dessous de 90 %, l'équipage doit réduire les consommations non essentielles, activer le mode économie et vérifier les vannes et les capteurs. Une baisse rapide doit être signalée immédiatement."
+    },
+    {
+      "title": "Système d'énergie",
+      "category": "power",
+      "content": "La batterie principale et la batterie de secours doivent être surveillées. Si le niveau de charge descend sous 60 %, réduire les charges non essentielles et passer en mode économie. La consommation électrique doit être priorisée selon les systèmes vitaux."
+    },
+    {
+      "title": "Système d'eau",
+      "category": "water",
+      "content": "Les réserves d'eau doivent être suivies chaque journée. Une consommation excessive ou une fuite doit être signalée. Le recyclage d'eau doit être optimisé pour ne pas compromettre les besoins vitaux de l'équipage."
+    },
+    {
+      "title": "Température de la cabine",
+      "category": "thermal",
+      "content": "La température nominale de la cabine est autour de 21°C. En cas de hausse trop importante, vérifier les systèmes de refroidissement, le débit d'air et l'isolement thermique. Une température excessive augmente le stress et la consommation énergétique."
+    },
+    {
+      "title": "Communication interne",
+      "category": "comms",
+      "content": "Les communications avec l'équipage doivent rester claires et courtes. Les messages de crise sont prioritaires sur les requêtes non urgentes. Une panne de communication n'est pas une cause de panique en soi, mais doit être documentée et testée."
+    },
+    {
+      "title": "Psychologie d'équipage",
+      "category": "wellbeing",
+      "content": "Le sommeil, la fatigue et l'humeur sont des indicateurs de résilience de l'équipage. Une baisse du sommeil ou une hausse de la fatigue doit être interprétée comme un signal de vigilance, pas comme un diagnostic médical. Les opérateurs doivent préserver la cohésion et favoriser les pauses."
+    },
+    {
+      "title": "Procédure de fatigue",
+      "category": "wellbeing",
+      "content": "Si la fatigue dépasse 7/10 ou si le sommeil tombe en dessous de 5 heures, il faut réduire les charges cognitifs, sécuriser les tâches critiques et encourager une pause ou un repos immédiat. Une fatigue persistante mérite un suivi humain et une surveillance."
+    },
+    {
+      "title": "Procédure de panne de communication",
+      "category": "incident",
+      "content": "En cas de panne de communication, vérifier les relais, la ligne principale, la batterie correspondante et l'état des antennes. La procédure de secours consiste à sécuriser les systèmes critiques et à documenter précisément l'incident avant de rétablir les échanges."
+    },
+    {
+      "title": "Procédure d'urgence biomédicale",
+      "category": "medical",
+      "content": "En cas d'urgence biomédicale, on active le protocole de surveillance, on sécurise l'astronaute, on documente les symptômes et on mobilise l'équipage concerné. L'IA peut aider à structurer l'information, mais la décision finale reste humaine."
+    },
+    {
+      "title": "Modes d'économie de puissance",
+      "category": "power",
+      "content": "Le mode économie consiste à réduire la consommation des systèmes non vitaux, ralentir les traitements secondaires, limiter les éclairages et privilégier des cycles de fonctionnement court. Le but est de préserver la puissance critique pour les systèmes de vie."
+    },
+    {
+      "title": "Maintenance préventive",
+      "category": "maintenance",
+      "content": "La maintenance préventive comprend le contrôle régulier des capteurs, des filtres, des batteries, des systèmes de recirculation et des alarmes. Les anomalies répétées doivent être notées et traitées avant qu'elles ne deviennent critiques."
+    },
+    {
+      "title": "Bilan d'équipage",
+      "category": "crew",
+      "content": "Un bon bilan d'équipage repose sur le sommeil, la coopération, la fatigue, la charge cognitive et la qualité de la communication. Une tendance négative sur plusieurs jours doit être surveillée avec attention, sans dramatiser ni diagnostiquer."
+    },
+    {
+      "title": "Rôle d'ARIA",
+      "category": "assistant",
+      "content": "ARIA est un assistant de bord. Elle aide l'équipage à interpréter les données, à rappeler les procédures, à synthétiser l'historique et à signaler les tendances inhabituelles. Elle ne remplace pas le jugement humain ni les décisions médicales."
+    },
+    {
+      "title": "Signal d'alerte de dérive",
+      "category": "analytics",
+      "content": "Une dérive comportementale est détectée lorsqu'un ou plusieurs indicateurs restent significativement éloignés de la baseline pendant plusieurs jours. La persistance est plus importante qu'un seul pic isolé. La surveillance, la documentation et l'analyse contextuelle servent à décider d'une intervention."
+    },
+    {
+      "title": "Rappel de consigne",
+      "category": "operations",
+      "content": "L'IA doit répondre clairement, calmement et avec un vocabulaire opérationnel. Elle doit prioriser le contexte de mission, la sécurité et la clarté. Les recommandations doivent être concrètes, courtes et compatibles avec les procédures de bord."
+    },
+    {
+      "title": "Survie et autonomie",
+      "category": "mission",
+      "content": "L'autonomie de mission repose sur la prudence, les routines répétées, la maintenance des systèmes et la qualité du suivi psychologique. Une mission longue impose des mesures simples, fiables et régulières."
+    },
+    {
+      "title": "Régime de sommeil",
+      "category": "wellbeing",
+      "content": "Un sommeil de 7 à 8 heures est généralement considéré comme un objectif de référence pour maintenir une vigilance correcte. Des écarts importants par rapport à cette plage peuvent indiquer un besoin de repos ou une baisse de résilience."
+    },
+    {
+      "title": "Régime d'humeur",
+      "category": "wellbeing",
+      "content": "Une humeur dégradée à long terme est un signal à observer. L'IA doit parler en termes d'observation de variation, et non de diagnostic. Elle doit aider à repérer des tendances plutôt qu'à prononcer des certitudes."
+    },
+    {
+      "title": "Données critiques",
+      "category": "monitoring",
+      "content": "Le monitorage de bord doit suivre les indicateurs de santé, de charge mentale, d'état des systèmes et de performance de la mission. Les données de référence sont essentielles pour détecter une dérive."
+    },
+    {
+      "title": "Procédure d'évacuation courte",
+      "category": "evacuation",
+      "content": "Toute évacuation rapide doit suivre la priorité des systèmes vitaux, l'activation des secours, le contrôle des voies d'accès et la communication avec l'équipage. La préparation doit être rapide, calme et rigoureuse."
+    },
+    {
+      "title": "Réduction de stress",
+      "category": "wellbeing",
+      "content": "Le stress est mieux géré par des routines simples, des pauses, des échanges clairs et une priorisation des tâches. Les recommandations doivent rester rassurantes, factuelles et concrètes."
+    },
+    {
+      "title": "Cohésion d'équipage",
+      "category": "crew",
+      "content": "La cohésion de l'équipage dépend de la qualité des échanges, de la confiance et d'une communication régulière. Les conflits et les tensions doivent être détectés tôt pour éviter la dégradation du moral et la réduction de la performance."
+    },
+    {
+      "title": "Données de synthèse",
+      "category": "reporting",
+      "content": "Une synthèse utile doit se baser sur les faits, sur la comparaison à la baseline, sur la persistance des signaux et sur le contexte mission. Elle ne doit pas inventer d'éléments non observés."
+    },
+    {
+      "title": "Hypothèse d'alerte technique",
+      "category": "incident",
+      "content": "Une alerte technique peut expliquer temporairement une variation de performance ou de comportement. Elle doit être évaluée dans son contexte, sans conclure prématurément à un problème humain."
+    },
+    {
+      "title": "Suivi de mission",
+      "category": "ops",
+      "content": "Le suivi de mission doit organiser les priorités : sécurité, santé, énergie, procédures, communication, maintenance. Les données sont utiles quand elles soutiennent des décisions claires."
+    },
+    {
+      "title": "Système de recyclage",
+      "category": "support",
+      "content": "Le recyclage de l'eau et de l'air doit être contrôlé avec précision. Toute baisse de rendement doit être vérifiée rapidement afin d'éviter des impacts sur la durée de vie de la mission."
+    },
+    {
+      "title": "Mode d'urgence partielle",
+      "category": "emergency",
+      "content": "Le mode d'urgence partielle consiste à prioriser les systèmes vitaux, suspendre les tâches non critiques et centraliser les décisions de sécurité. Le but est de stabiliser l'équipage sans provoquer de panique inutile."
+    },
+    {
+      "title": "Rôle du commandement",
+      "category": "command",
+      "content": "Le commandement garde la responsabilité finale des décisions critiques. L'IA peut éclairer, recommander et synthétiser, mais ne remplace pas la supervision humaine."
+    }
+  ]
+}
