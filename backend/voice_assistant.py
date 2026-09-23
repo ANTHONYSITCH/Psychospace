@@ -26,14 +26,44 @@ class VoiceAssistant:
             self.engine = pyttsx3.init()
             self.engine.setProperty("rate", 170)
             self.engine.setProperty("volume", 0.9)
+            self._set_preferred_female_voice()
 
         if sr is not None:
             self.recognizer = sr.Recognizer()
+
+    def _set_preferred_female_voice(self):
+        if self.engine is None:
+            return
+
+        try:
+            voices = self.engine.getProperty("voices") or []
+            if not voices:
+                return
+
+            def voice_score(voice):
+                identifier = " ".join([
+                    getattr(voice, "id", ""),
+                    getattr(voice, "name", ""),
+                    getattr(voice, "languages", [""])[0] if getattr(voice, "languages", None) else "",
+                ]).lower()
+                score = 0
+                if any(token in identifier for token in ["female", "femme", "zira", "samantha", "voice 2", "voice2", "girl", "woman"]):
+                    score += 10
+                if "fr" in identifier or "french" in identifier:
+                    score += 3
+                return score
+
+            preferred_voice = max(voices, key=voice_score, default=None)
+            if preferred_voice is not None:
+                self.engine.setProperty("voice", preferred_voice.id)
+        except Exception:
+            pass
 
     def speak(self, text: str) -> bool:
         if not text or self.engine is None:
             return False
         try:
+            self._set_preferred_female_voice()
             self.engine.say(text)
             self.engine.runAndWait()
             return True

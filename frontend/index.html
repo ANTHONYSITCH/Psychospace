@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARIA // Mission Console</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              space: {
+                950: '#020b12',
+                900: '#071d2a',
+                800: '#0d2d3d',
+                700: '#123d4f',
+                500: '#5dd4ff',
+                400: '#7ef3ff',
+                300: '#c7f8ff',
+              },
+            },
+            boxShadow: {
+              glow: '0 0 30px rgba(93, 212, 255, 0.35)',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background:
+          radial-gradient(circle at top, rgba(126, 243, 255, 0.18), transparent 30%),
+          linear-gradient(180deg, #020b12 0%, #071d2a 100%);
+      }
+
+      .stars {
+        background-image:
+          radial-gradient(2px 2px at 15% 18%, rgba(255,255,255,0.85), transparent),
+          radial-gradient(2px 2px at 64% 26%, rgba(255,255,255,0.8), transparent),
+          radial-gradient(1.5px 1.5px at 72% 58%, rgba(255,255,255,0.9), transparent),
+          radial-gradient(1.8px 1.8px at 28% 62%, rgba(255,255,255,0.8), transparent),
+          radial-gradient(2.2px 2.2px at 87% 22%, rgba(255,255,255,0.65), transparent),
+          radial-gradient(1.6px 1.6px at 50% 78%, rgba(255,255,255,0.7), transparent);
+        animation: twinkle 7s ease-in-out infinite alternate;
+      }
+
+      @keyframes twinkle {
+        0% { opacity: 0.5; }
+        100% { opacity: 1; }
+      }
+
+      .ship-float {
+        animation: hover 5s ease-in-out infinite;
+      }
+
+      @keyframes hover {
+        0%, 100% { transform: translate(-50%, -50%) rotate(12deg) translateY(0px); }
+        50% { transform: translate(-50%, -50%) rotate(12deg) translateY(-12px); }
+      }
+
+      .ship-glow {
+        box-shadow: 0 0 30px rgba(125, 229, 255, 0.5);
+      }
+
+      .glass {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-slate-100 antialiased">
+    <div class="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:py-8">
+      <div class="glass overflow-hidden rounded-3xl border border-sky-400/20 bg-slate-950/70 shadow-glow">
+        <header class="flex items-center justify-between border-b border-sky-400/20 px-5 py-4 md:px-8">
+          <div class="flex items-center gap-3">
+            <div class="h-3.5 w-3.5 rounded-full bg-cyan-300 shadow-[0_0_15px_rgba(103,232,249,0.9)]"></div>
+            <div>
+              <p class="text-[10px] uppercase tracking-[0.35em] text-sky-200/70">mission control</p>
+              <h1 class="text-lg font-semibold tracking-[0.22em] text-sky-100 md:text-xl">ARIA</h1>
+            </div>
+          </div>
+
+          <div id="ariaStatus" class="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-200 transition-all duration-300">
+            <span id="ariaStatusDot" class="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]"></span>
+            <span id="ariaStatusText">ARIA veille</span>
+          </div>
+        </header>
+
+        <main class="grid gap-5 p-5 md:p-6 xl:grid-cols-[260px_minmax(0,1fr)_300px]">
+          <aside class="rounded-2xl border border-sky-400/20 bg-slate-900/60 p-4">
+            <h2 class="mb-4 text-[10px] font-medium uppercase tracking-[0.28em] text-sky-200/70">Système</h2>
+
+            <div class="space-y-3">
+              <div class="rounded-xl border border-sky-400/20 bg-slate-800/70 p-3">
+                <div class="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  <span>Oxygène</span>
+                  <span>96%</span>
+                </div>
+                <div class="text-2xl font-bold text-sky-100">96%</div>
+                <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-700">
+                  <div class="h-full w-[96%] rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-300"></div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-sky-400/20 bg-slate-800/70 p-3">
+                <div class="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  <span>Énergie</span>
+                  <span>64%</span>
+                </div>
+                <div class="text-2xl font-bold text-amber-200">64%</div>
+                <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-700">
+                  <div class="h-full w-[64%] rounded-full bg-gradient-to-r from-amber-300 via-orange-400 to-cyan-400"></div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-sky-400/20 bg-slate-800/70 p-3">
+                <div class="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  <span>Eau</span>
+                  <span>82%</span>
+                </div>
+                <div class="text-2xl font-bold text-cyan-100">82%</div>
+                <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-700">
+                  <div class="h-full w-[82%] rounded-full bg-gradient-to-r from-cyan-300 via-sky-400 to-emerald-400"></div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-sky-400/20 bg-slate-800/70 p-3">
+                <div class="mb-2 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  <span>Thermique</span>
+                  <span>21°C</span>
+                </div>
+                <div class="text-2xl font-bold text-sky-100">21°C</div>
+                <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-700">
+                  <div class="h-full w-[70%] rounded-full bg-gradient-to-r from-emerald-400 via-amber-300 to-rose-300"></div>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <section class="space-y-4 rounded-2xl border border-sky-400/20 bg-slate-900/60 p-4">
+            <div class="relative h-[290px] overflow-hidden rounded-2xl border border-sky-400/20 bg-gradient-to-b from-slate-900 to-slate-950">
+              <div class="stars absolute inset-0"></div>
+              <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(125,229,255,0.18),_transparent_30%)]"></div>
+
+              <div class="ship-float absolute left-1/2 top-1/2 h-44 w-44 -translate-x-1/2 -translate-y-1/2">
+                <div class="ship-glow absolute inset-x-7 bottom-0 h-14 rounded-t-[50%] bg-cyan-300/75 blur-md"></div>
+                <div class="absolute inset-8 rounded-[34%] border border-sky-300/60 bg-gradient-to-br from-sky-200/20 via-sky-400/10 to-slate-900/20"></div>
+                <div class="absolute inset-[54px] rounded-full bg-[radial-gradient(circle,_rgba(103,232,249,1),_rgba(59,130,246,0.35),_rgba(15,23,42,0.3))] shadow-[0_0_25px_rgba(103,232,249,0.8)]"></div>
+                <div class="absolute inset-x-10 bottom-2 h-10 rounded-b-2xl bg-gradient-to-b from-cyan-300 via-sky-400 to-transparent opacity-80"></div>
+              </div>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-3">
+              <div class="rounded-xl border border-sky-400/20 bg-slate-800/60 p-3 text-sm text-sky-100">
+                <div class="text-[10px] uppercase tracking-[0.25em] text-sky-200/70">Signal</div>
+                <div class="mt-2 text-xl font-semibold">Stable</div>
+              </div>
+              <div class="rounded-xl border border-sky-400/20 bg-slate-800/60 p-3 text-sm text-sky-100">
+                <div class="text-[10px] uppercase tracking-[0.25em] text-sky-200/70">Équipage</div>
+                <div class="mt-2 text-xl font-semibold">08</div>
+              </div>
+              <div class="rounded-xl border border-sky-400/20 bg-slate-800/60 p-3 text-sm text-sky-100">
+                <div class="text-[10px] uppercase tracking-[0.25em] text-sky-200/70">Trajet</div>
+                <div class="mt-2 text-xl font-semibold">Horizon-7</div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-sky-400/20 bg-slate-950/60 p-4">
+              <div id="messageList" class="max-h-[260px] space-y-3 overflow-y-auto pr-2">
+                <div class="max-w-[85%] rounded-2xl border border-sky-400/20 bg-sky-500/5 px-4 py-3 text-sm text-sky-50">
+                  Bonjour, je suis ARIA. Que puis-je faire pour vous aujourd’hui ?
+                </div>
+              </div>
+
+              <div class="mt-4 flex gap-3">
+                <textarea id="messageInput" rows="2" class="flex-1 resize-none rounded-2xl border border-sky-400/20 bg-slate-900/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-400 focus:border-cyan-300 focus:outline-none" placeholder="Demandez à ARIA une aide..."></textarea>
+                <div class="flex flex-col gap-2">
+                  <button id="sendBtn" class="rounded-2xl bg-gradient-to-r from-cyan-300 to-blue-400 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:brightness-110">Envoyer</button>
+                  <button id="voiceBtn" class="rounded-2xl bg-gradient-to-r from-emerald-300 to-cyan-300 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:brightness-110">Parler</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="space-y-4">
+            <div class="rounded-2xl border border-rose-400/25 bg-rose-500/5 p-4">
+              <div class="mb-3 text-[10px] font-medium uppercase tracking-[0.28em] text-rose-200/80">Alerte</div>
+              <ul class="space-y-2 text-sm text-rose-100/80">
+                <li>• Consommation électrique élevée</li>
+                <li>• Communication nominale</li>
+                <li>• Surveillance active</li>
+              </ul>
+            </div>
+
+            <div class="rounded-2xl border border-sky-400/20 bg-slate-900/60 p-4">
+              <div class="mb-3 text-[10px] font-medium uppercase tracking-[0.28em] text-sky-200/70">Protocoles</div>
+              <ul class="space-y-2 text-sm text-slate-300">
+                <li>• Vérifier l’oxygène</li>
+                <li>• Contrôler la puissance</li>
+                <li>• Confirmer le bien-être</li>
+              </ul>
+            </div>
+
+            <div class="rounded-2xl border border-sky-400/20 bg-slate-900/60 p-4">
+              <div class="mb-3 text-[10px] font-medium uppercase tracking-[0.28em] text-sky-200/70">PsychoSpace</div>
+              <div id="psychoSummary" class="space-y-2 text-sm text-slate-300">
+                <div class="flex items-center justify-between"><span>Sommeil</span><strong class="text-cyan-200">6.8 h</strong></div>
+                <div class="flex items-center justify-between"><span>Humeur</span><strong class="text-cyan-200">7/10</strong></div>
+                <div class="flex items-center justify-between"><span>Fatigue</span><strong class="text-amber-200">5/10</strong></div>
+                <div class="mt-3 rounded-xl border border-amber-400/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-100">
+                  État : vigilance modérée — repos et charge mentale à surveiller.
+                </div>
+              </div>
+
+              <form id="psychoForm" class="mt-4 space-y-3">
+                <label class="block text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  Sommeil (h)
+                  <input id="sleepHours" type="number" min="0" max="12" step="0.5" value="6.8" class="mt-1 w-full rounded-xl border border-sky-400/20 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 focus:border-cyan-300 focus:outline-none" />
+                </label>
+                <label class="block text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  Humeur (0-10)
+                  <input id="mood" type="number" min="0" max="10" step="0.5" value="7" class="mt-1 w-full rounded-xl border border-sky-400/20 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 focus:border-cyan-300 focus:outline-none" />
+                </label>
+                <label class="block text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  Fatigue (0-10)
+                  <input id="fatigue" type="number" min="0" max="10" step="0.5" value="5" class="mt-1 w-full rounded-xl border border-sky-400/20 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 focus:border-cyan-300 focus:outline-none" />
+                </label>
+                <label class="block text-[10px] uppercase tracking-[0.2em] text-sky-200/70">
+                  Stress (0-10)
+                  <input id="stress" type="number" min="0" max="10" step="0.5" value="5" class="mt-1 w-full rounded-xl border border-sky-400/20 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 focus:border-cyan-300 focus:outline-none" />
+                </label>
+                <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-cyan-300 to-blue-400 px-3 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 hover:brightness-110">
+                  Evaluer la journée
+                </button>
+              </form>
+
+              <div class="mt-4">
+                <div class="mb-2 text-[10px] uppercase tracking-[0.2em] text-sky-200/70">Historique 7 jours</div>
+                <div id="psychoHistory" class="space-y-2"></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-sky-400/20 bg-slate-900/60 p-4">
+              <div class="mb-3 text-[10px] font-medium uppercase tracking-[0.28em] text-sky-200/70">Assistant</div>
+              <ul class="space-y-2 text-sm text-slate-300">
+                <li>• IA locale</li>
+                <li>• Mode hors ligne</li>
+                <li>• Guidance mission</li>
+              </ul>
+            </div>
+          </aside>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const messageList = document.getElementById('messageList');
+      const messageInput = document.getElementById('messageInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const voiceBtn = document.getElementById('voiceBtn');
+      const psychoSummary = document.getElementById('psychoSummary');
+      const psychoForm = document.getElementById('psychoForm');
+      const psychoHistory = document.getElementById('psychoHistory');
+
+      function getSessionId() {
+        let sessionId = localStorage.getItem('aria_session_id');
+        if (!sessionId) {
+          sessionId = `session_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+          localStorage.setItem('aria_session_id', sessionId);
+        }
+        return sessionId;
+      }
+
+      function renderHistory(history) {
+        if (!psychoHistory) return;
+        if (!history || history.length === 0) {
+          psychoHistory.innerHTML = '<div class="text-xs text-slate-400">Aucune donnée enregistrée.</div>';
+          return;
+        }
+
+        const values = history.map((entry) => Number(entry.score || 0));
+        const maxValue = 100;
+        const minValue = 0;
+        const width = 220;
+        const height = 72;
+        const padX = 12;
+        const padY = 10;
+
+        const points = values.map((value, index) => {
+          const x = padX + (index * (width - padX * 2)) / Math.max(values.length - 1, 1);
+          const y = height - padY - ((value - minValue) / Math.max(maxValue - minValue, 1)) * (height - padY * 2);
+          return `${x},${y}`;
+        }).join(' ');
+
+        const areaPoints = `${points} ${width - padX},${height - padY} ${padX},${height - padY}`;
+
+        psychoHistory.innerHTML = `
+          <svg viewBox="0 0 ${width} ${height}" class="h-20 w-full overflow-visible rounded-lg bg-slate-950/60 p-1">
+            <defs>
+              <linearGradient id="psychoGradient" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#67e8f9" stop-opacity="0.4" />
+                <stop offset="100%" stop-color="#67e8f9" stop-opacity="0.02" />
+              </linearGradient>
+            </defs>
+            <polyline points="${points}" fill="none" stroke="#67e8f9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            <polygon points="${areaPoints}" fill="url(#psychoGradient)" opacity="0.9" />
+            ${values.map((value, index) => {
+              const x = padX + (index * (width - padX * 2)) / Math.max(values.length - 1, 1);
+              const y = height - padY - ((value - minValue) / Math.max(maxValue - minValue, 1)) * (height - padY * 2);
+              const risk = history[index]?.risk_level || 'watch';
+              const color = risk === 'critical' ? '#fda4af' : risk === 'elevated' ? '#fdba74' : risk === 'watch' ? '#fcd34d' : '#6ee7b7';
+              return `<circle cx="${x}" cy="${y}" r="3.2" fill="${color}" />`;
+            }).join('')}
+          </svg>
+          <div class="mt-2 grid grid-cols-7 gap-1 text-[9px] text-slate-400">
+            ${history.map((entry) => `
+              <div class="text-center">
+                <div>${new Date(entry.date).toLocaleDateString('fr-FR', { day: '2-digit' })}</div>
+                <div class="text-cyan-200">${entry.score}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      function renderPsychoState(data) {
+        if (!psychoSummary) return;
+        const riskColors = {
+          stable: 'border-emerald-400/30 bg-emerald-500/5 text-emerald-100',
+          watch: 'border-amber-400/30 bg-amber-500/5 text-amber-100',
+          elevated: 'border-orange-400/30 bg-orange-500/5 text-orange-100',
+          critical: 'border-rose-400/30 bg-rose-500/5 text-rose-100',
+        };
+
+        psychoSummary.innerHTML = `
+          <div class="flex items-center justify-between"><span>Sommeil</span><strong class="text-cyan-200">${data.sleep_hours ?? 0} h</strong></div>
+          <div class="flex items-center justify-between"><span>Humeur</span><strong class="text-cyan-200">${data.mood ?? 0}/10</strong></div>
+          <div class="flex items-center justify-between"><span>Fatigue</span><strong class="text-amber-200">${data.fatigue ?? 0}/10</strong></div>
+          <div class="flex items-center justify-between"><span>Stress</span><strong class="text-orange-200">${data.stress ?? 0}/10</strong></div>
+          <div class="mt-3 rounded-xl border px-3 py-2 text-xs ${riskColors[data.risk_level] || 'border-cyan-400/20 bg-cyan-500/5 text-cyan-100'}">
+            <div class="font-semibold uppercase tracking-[0.15em]">${data.risk_level || 'watch'}</div>
+            <div class="mt-1">${data.summary || 'Surveillance active.'}</div>
+            <div class="mt-2">Action : ${data.action || 'Suivre les signaux.'}</div>
+          </div>
+        `;
+      }
+
+      async function submitPsychoCheckin(event) {
+        event.preventDefault();
+        const formData = new FormData(psychoForm);
+        const payload = {
+          sleep_hours: Number(formData.get('sleep_hours') || 0),
+          mood: Number(formData.get('mood') || 0),
+          fatigue: Number(formData.get('fatigue') || 0),
+          stress: Number(formData.get('stress') || 0),
+        };
+
+        try {
+          const response = await fetch('http://127.0.0.1:8000/assistant/psychospace/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            throw new Error('Evaluation failed');
+          }
+          const result = await response.json();
+          renderPsychoState(result);
+          renderHistory(result.history || []);
+          addMessage('bot', `PsychoSpace : ${result.summary} Action : ${result.action}`);
+        } catch (error) {
+          addMessage('bot', 'PsychoSpace n’a pas pu évaluer la journée. Vérifie que le backend est bien lancé.');
+        }
+      }
+
+      async function loadPsychoHistory() {
+        try {
+          const response = await fetch('http://127.0.0.1:8000/assistant/psychospace/history');
+          if (!response.ok) return;
+          const data = await response.json();
+          renderHistory(data.history || []);
+        } catch (error) {
+          console.warn('History unavailable', error);
+        }
+      }
+
+      if (psychoForm) {
+        psychoForm.querySelectorAll('input').forEach((input) => {
+          input.name = input.id;
+        });
+        psychoForm.addEventListener('submit', submitPsychoCheckin);
+      }
+
+      loadPsychoHistory();
+
+      async function loadMissionBrief() {
+        try {
+          const response = await fetch('http://127.0.0.1:8000/assistant/brief');
+          if (!response.ok) return;
+          const data = await response.json();
+          if (!psychoSummary) return;
+          psychoSummary.innerHTML = `
+            <div class="flex items-center justify-between"><span>Mode</span><strong class="text-cyan-200">${data.mode || 'local'}</strong></div>
+            <div class="flex items-center justify-between"><span>Priorité</span><strong class="text-cyan-200">${data.status || 'mission-ready'}</strong></div>
+            <div class="flex items-center justify-between"><span>Risque</span><strong class="text-amber-200">${data.risk_level || 'watch'}</strong></div>
+            <div class="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 px-3 py-2 text-xs text-cyan-100">
+              ${data.summary || 'Assistant de bord local prêt pour la mission.'}
+            </div>
+          `;
+        } catch (error) {
+          console.warn('Mission brief unavailable', error);
+        }
+      }
+
+      loadMissionBrief();
+
+      function addMessage(role, text) {
+        const bubble = document.createElement('div');
+        bubble.className = `max-w-[85%] rounded-2xl px-4 py-3 text-sm ${role === 'user' ? 'ml-auto border border-cyan-400/30 bg-cyan-500/10 text-cyan-50' : 'border border-sky-400/20 bg-slate-800/80 text-slate-100'}`;
+        bubble.textContent = text;
+        messageList.appendChild(bubble);
+        messageList.scrollTop = messageList.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+
+        addMessage('user', text);
+        messageInput.value = '';
+
+        try {
+          const response = await fetch('http://127.0.0.1:8000/assistant/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text, session_id: getSessionId() })
+          });
+
+          if (!response.ok) {
+            throw new Error('API down');
+          }
+
+          const data = await response.json();
+          const answer = data.answer || 'Aucune réponse reçue.';
+          addMessage('bot', answer);
+
+          if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(answer);
+            utterance.lang = 'fr-FR';
+
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = voices.find((voice) => {
+              const name = (voice.name || '').toLowerCase();
+              return name.includes('female') || name.includes('femme') || name.includes('zira') || name.includes('samantha') || name.includes('voice 2');
+            }) || voices.find((voice) => voice.lang && voice.lang.toLowerCase().startsWith('fr'));
+
+            if (femaleVoice) {
+              utterance.voice = femaleVoice;
+            }
+
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+          }
+        } catch (error) {
+          addMessage('bot', 'ARIA n’a pas pu répondre. Vérifie que le backend est bien lancé sur le port 8000.');
+        }
+      }
+
+      sendBtn.addEventListener('click', sendMessage);
+      messageInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'fr-FR';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        let isListening = false;
+        let ariaActive = false;
+
+        const ariaStatus = document.getElementById('ariaStatus');
+        const ariaStatusDot = document.getElementById('ariaStatusDot');
+        const ariaStatusText = document.getElementById('ariaStatusText');
+
+        const updateAriaStatus = () => {
+          const active = ariaActive || isListening;
+          ariaStatus.classList.toggle('border-emerald-400/30', !active);
+          ariaStatus.classList.toggle('bg-emerald-500/10', !active);
+          ariaStatus.classList.toggle('text-emerald-200', !active);
+          ariaStatus.classList.toggle('border-cyan-400/40', active);
+          ariaStatus.classList.toggle('bg-cyan-500/15', active);
+          ariaStatus.classList.toggle('text-cyan-100', active);
+
+          ariaStatusDot.classList.toggle('bg-emerald-400', !active);
+          ariaStatusDot.classList.toggle('bg-cyan-300', active);
+          ariaStatusDot.classList.toggle('shadow-[0_0_12px_rgba(52,211,153,0.9)]', !active);
+          ariaStatusDot.classList.toggle('shadow-[0_0_18px_rgba(103,232,249,0.9)]', active);
+
+          ariaStatusText.textContent = isListening ? 'ARIA écoute' : ariaActive ? 'ARIA actif' : 'ARIA veille';
+        };
+
+        const setVoiceState = (listening) => {
+          isListening = listening;
+          voiceBtn.classList.toggle('bg-gradient-to-r', true);
+          voiceBtn.classList.toggle('from-emerald-300', !listening);
+          voiceBtn.classList.toggle('to-cyan-300', !listening);
+          voiceBtn.classList.toggle('from-amber-300', listening);
+          voiceBtn.classList.toggle('to-orange-300', listening);
+          voiceBtn.textContent = listening ? 'Écoute...' : ariaActive ? 'ARIA actif' : 'Parler';
+          updateAriaStatus();
+        };
+
+        const handleWakeWord = (transcript) => {
+          const text = transcript.toLowerCase();
+
+          if (text.includes('aria stop') || text.includes('stop aria')) {
+            ariaActive = false;
+            setVoiceState(false);
+            recognition.stop();
+            addMessage('bot', 'ARIA en veille. Dites simplement “ARIA” pour me réactiver.');
+            return true;
+          }
+
+          if (text.includes('aria')) {
+            ariaActive = true;
+            updateAriaStatus();
+            const cleaned = transcript.replace(/^\s*aria\s*/i, '').trim();
+            if (cleaned) {
+              messageInput.value = cleaned;
+              sendMessage();
+            } else {
+              addMessage('bot', 'Oui, je suis à l’écoute. Que souhaitez-vous ?');
+            }
+            return true;
+          }
+
+          if (!ariaActive) {
+            return true;
+          }
+
+          messageInput.value = transcript;
+          sendMessage();
+          return true;
+        };
+
+        voiceBtn.addEventListener('click', () => {
+          if (isListening) {
+            recognition.stop();
+            return;
+          }
+
+          try {
+            recognition.start();
+            setVoiceState(true);
+          } catch (error) {
+            setVoiceState(false);
+          }
+        });
+
+        updateAriaStatus();
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript.trim();
+          if (transcript) {
+            handleWakeWord(transcript);
+          }
+        };
+
+        recognition.onerror = () => setVoiceState(false);
+        recognition.onend = () => setVoiceState(false);
+      } else {
+        voiceBtn.disabled = true;
+        voiceBtn.textContent = 'Micro indisponible';
+      }
+    </script>
+  </body>
+</html>

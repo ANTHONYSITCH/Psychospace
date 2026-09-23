@@ -1,6 +1,46 @@
 {
   "entries": [
     {
+      "title": "Réponse rapide : oxygène",
+      "category": "life_support",
+      "content": "Si l'oxygène baisse, la priorité est de sécuriser les systèmes vitaux. En dessous de 95 %, surveiller la tendance, réduire les consommations non critiques, vérifier les capteurs et la pression, puis avertir le commandement. Une baisse rapide est plus grave qu'une baisse lente."
+    },
+    {
+      "title": "Réponse rapide : énergie",
+      "category": "power",
+      "content": "Pour l'énergie, il faut privilégier les systèmes vitaux et passer en mode économie dès que la charge descend sous 60 %. Éteindre les charges non critiques, limiter l'éclairage et les traitements secondaires, puis vérifier les batteries et les consommations."
+    },
+    {
+      "title": "Réponse rapide : fatigue",
+      "category": "wellbeing",
+      "content": "La fatigue est un signal de vigilance. Si le sommeil est bas ou si la fatigue dépasse 7/10, il faut réduire la charge cognitive, encourager une pause, sécuriser les tâches critiques et surveiller la tendance sur plusieurs jours."
+    },
+    {
+      "title": "Réponse rapide : humeur",
+      "category": "wellbeing",
+      "content": "Une humeur dégradée doit être interprétée comme un signal de variation, pas comme une conclusion. Il faut comparer la tendance sur plusieurs jours, regarder le sommeil, la charge mentale et l'environnement, puis proposer un soutien simple et concret."
+    },
+    {
+      "title": "Réponse rapide : communication",
+      "category": "comms",
+      "content": "En cas de problème de communication, vérifier le signal, les relais et la batterie associée, documenter l'incident, sécuriser les systèmes critiques et ne pas multiplier les hypothèses sans preuve. La clarté prime sur la vitesse."
+    },
+    {
+      "title": "PsychoSpace : questionnaire quotidien",
+      "category": "wellbeing",
+      "content": "Le système PsychoSpace doit mesurer le sommeil, la fatigue, le stress, l'humeur et le sentiment d'isolement. Une évolution inquiétante n'est pas un diagnostic, mais un signal de vigilance. L'IA doit proposer des actions concrètes : pause, réduction de la charge mentale, respiration, meilleure organisation et suivi humain."
+    },
+    {
+      "title": "PsychoSpace : priorisation en crise",
+      "category": "wellbeing",
+      "content": "Lorsque 15 % de l'équipage est impacté ou que plusieurs indicateurs s'aggravent sur plusieurs jours, le système met en place une priorisation des patients, un suivi renforcé et une réduction de la charge mentale. Les alertes doivent rester claires, objectives et proportionnées."
+    },
+    {
+      "title": "Télémedecine locale sans Internet",
+      "category": "medical",
+      "content": "L'assistant de bord doit fonctionner entièrement hors ligne. Il peut aider à collecter les symptômes, à poser des questions, à proposer des hypothèses, à noter l'historique et à hiérarchiser les cas urgents. L'IA n'a pas le droit d'être un diagnostic final ; elle doit orienter vers une décision humaine et un protocole."
+    },
+    {
       "title": "Règle de sécurité générale",
       "category": "safety",
       "content": "L'astronaute doit toujours prioriser les systèmes vitaux : oxygène, pression, énergie et communications. Toute anomalie d'un système critique impose une vérification immédiate, une journalisation et une communication claire avec le commandement de bord."
