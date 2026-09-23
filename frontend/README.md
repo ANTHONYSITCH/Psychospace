@@ -1,6 +1,6 @@
 # PsychoSpace · Foundation UI
 
-Phases 1 à 6 : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon, Mon évolution, Empreinte de rythme, Mémoire et Accompagnement.
+Phases 1 à 7A : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon et voix locale, Mon évolution, Empreinte de rythme, Mémoire et Accompagnement.
 L’interface et les libellés d’accessibilité sont en français, avec dates et nombres
 au format français. Les noms techniques et les routes restent inchangés. Le niveau
 moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouton
@@ -8,6 +8,50 @@ moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouto
 Le dossier initial contenait seulement `.gitkeep` ; aucun framework ni style existant.
 React 19 + Vite 7, CSS natif, icônes SVG locales et polices système : aucun asset
 externe ni CDN à l'exécution.
+
+## Voix de PsychoSpace — Phase 7A
+
+`src/services/voice.js` centralise `speechSynthesis`, la liste actualisée avec
+`voiceschanged`, la lecture, l'arrêt, les événements réels et les erreurs. Seules
+les voix déclarées `localService === true` sont admissibles : fr-FR, puis autre
+français, puis voix locale par défaut (repli signalé en console). Sans voix locale
+vérifiable, la lecture reste indisponible plutôt que de laisser le navigateur
+choisir implicitement une voix distante. Aucun SDK, clé ou endpoint vocal.
+
+« Réponses vocales » est désactivé par défaut et persiste dans `localStorage`
+sous `voiceEnabled`. Charger l'historique, revenir au Compagnon ou cocher la
+préférence ne lit aucun texte. Après un nouvel envoi utilisateur, seule la réponse
+POST confirmée et présente dans le transcript peut être lue automatiquement.
+« Écouter » permet aussi la lecture explicite d'une réponse visible ; « Arrêter »
+annule la lecture. Un nouvel envoi, la désactivation ou la sortie du Compagnon
+l'arrêtent également. Les callbacks des anciennes lectures sont invalidés.
+
+L'état speaking commence sur l'événement natif `start`, puis revient à attentive
+sur `end`, erreur ou annulation. La pulsation est décorative, sans analyse audio,
+et disparaît avec `prefers-reduced-motion`. Le texte demeure disponible. Si le
+navigateur refuse la lecture automatique après une réponse lente, un message
+invite à cliquer « Écouter » ; aucune tentative de contourner cette restriction.
+
+```powershell
+$env:PSYCHOSPACE_REAL_VOICE = '1'
+npx playwright test tests/browser/voice.spec.js
+Remove-Item Env:PSYCHOSPACE_REAL_VOICE
+```
+
+Le test réel envoie « Ça va, je suis juste fatigué. » à Ollama et observe la vraie
+voix Windows, sans mock, jusqu'à la fin de lecture. Les autres tests utilisent
+des doublures de synthèse pour vérifier sélection, arrêt, erreurs, navigation,
+préférence et absence d'appels distants. Les événements natifs confirment le
+fonctionnement technique ; la qualité perçue dépend de la voix et de la sortie
+audio Windows et nécessite une écoute humaine. Aucun accès au microphone.
+
+Validation Windows du 23 septembre 2026 : réponse Ollama réelle lue par
+« Microsoft Hortense - French (France) », `fr-FR`, `localService=true`.
+Séquence attentive → thinking → speaking → attentive confirmée par les événements
+natifs start/end, texte conservé et persistance de la réponse vérifiée par GET.
+L'utilisateur a confirmé que la voix était audible et claire en français.
+Le rapprochement POST/historique utilise timestamp et contenu, car le POST ne
+renvoie pas l'identifiant présent dans le GET. Les réponses successives sont testées.
 
 ## Accompagnement — Phase 6
 

@@ -3,6 +3,10 @@ import { getChatHistory, loadProfile, sendChatMessage } from '../api'
 import PsychoSpacePresence from './PsychoSpacePresence'
 import Icon from './Icon'
 import './Companion.css'
+import { voice } from '../services/voice'
+
+// POST replies omit id; timestamp/content also identify the same reply after GET.
+const speechKey = item => item ? JSON.stringify([item.timestamp || item.id, item.content]) : null
 
 export default function Companion() {
   const [history, setHistory] = useState([])
@@ -13,6 +17,11 @@ export default function Companion() {
   const [error, setError] = useState(null)
   const [receipt, setReceipt] = useState(null)
   const [unread, setUnread] = useState(false)
+  const [voiceEnabled, setVoiceEnabled] = useState(() => voice.getEnabled())
+  const [speech, setSpeech] = useState(() => voice.getSnapshot())
+  const [newReply, setNewReply] = useState(null)
+  const enabledRef = useRef(voiceEnabled)
+  const spokenReply = useRef(null)
   const busy = useRef(false)
   const mounted = useRef(true)
   const transcript = useRef(null)
@@ -20,6 +29,27 @@ export default function Companion() {
   const firstLoad = useRef(true)
   const previousAttempt = useRef(null)
   const sending = phase === 'sending'
+
+  useEffect(() => {
+    const unsubscribe = voice.subscribe(setSpeech)
+    return () => { unsubscribe(); voice.stop() }
+  }, [])
+  useEffect(() => {
+    // Only a newly confirmed POST reply that is already in the visible transcript.
+    // History loading, navigation and preference changes never trigger speech.
+    if (!newReply || spokenReply.current === speechKey(newReply)) return
+    if (speechKey(receipt?.reply) !== speechKey(newReply) && !history.some(item => speechKey(item) === speechKey(newReply))) return
+    spokenReply.current = speechKey(newReply)
+    if (enabledRef.current) voice.speak(newReply.content, speechKey(newReply))
+  }, [newReply, history, receipt])
+
+  function toggleVoice(enabled) {
+    enabledRef.current = enabled; setVoiceEnabled(enabled); voice.setEnabled(enabled)
+  }
+  function voiceControl(item) {
+    const active = speech.activeId === speechKey(item) && (speech.speaking || speech.pending)
+    return <button className="voice-listen" type="button" disabled={!voiceEnabled || !speech.supported || !speech.selectedVoice || sending} aria-label={active ? 'Arrêter la lecture de cette réponse' : 'Écouter cette réponse'} onClick={() => active ? voice.stop() : voice.speak(item.content, speechKey(item))}>{active ? 'Arrêter' : 'Écouter'}</button>
+  }
 
   useEffect(() => {
     mounted.current = true
@@ -62,6 +92,7 @@ export default function Companion() {
     event?.preventDefault()
     const message = draft.trim()
     if (busy.current || !message || !['ready', 'send-error'].includes(phase)) return
+    voice.stop()
     busy.current = true
     setPhase('sending'); setError(null)
     try {
@@ -84,6 +115,7 @@ export default function Companion() {
       setPhase('refreshing')
       // This is the actual POST receipt, displayed only after backend confirmation.
       setReceipt({ message, reply })
+      setNewReply(reply)
       try {
         const items = await getChatHistory()
         if (mounted.current) { setHistory(items); setReceipt(null); setPhase('ready') }
@@ -105,9 +137,11 @@ export default function Companion() {
   return <>
     <header className="page-header"><div><span className="eyebrow">UN ESPACE POUR SE PARLER</span><h1>Compagnon<span className="heading-dot">.</span></h1></div><span className="companion-local"><Icon name="lock" /> Conversation locale</span></header>
     <section className="conversation-space" aria-label="Échanger avec PsychoSpace">
-      <div className="conversation-presence"><PsychoSpacePresence state={sending ? 'thinking' : 'attentive'} />
-        <p className="conversation-status" role="status" aria-live="polite">{sending ? late ? 'Le compagnon local se prépare… Je prends le temps de te répondre.' : 'PsychoSpace réfléchit…' : phase === 'loading' ? 'Je retrouve notre conversation…' : 'Je t’écoute.'}</p>
+      <div className="conversation-presence"><PsychoSpacePresence state={sending ? 'thinking' : speech.speaking ? 'speaking' : 'attentive'} />
+        <p className="conversation-status" role="status" aria-live="polite">{sending ? late ? 'Le compagnon local se prépare… Je prends le temps de te répondre.' : 'PsychoSpace réfléchit…' : speech.speaking ? 'PsychoSpace te répond à voix haute.' : phase === 'loading' ? 'Je retrouve notre conversation…' : 'Je t’écoute.'}</p>
       </div>
+      <div className="voice-preference"><label><input type="checkbox" checked={voiceEnabled} disabled={!speech.supported} onChange={event => toggleVoice(event.target.checked)} />Réponses vocales</label><span>{voiceEnabled ? 'Voix activée · le texte reste visible' : 'Active les réponses vocales si tu le souhaites.'}</span>{(speech.pending || speech.speaking) && <button type="button" className="voice-listen" onClick={() => voice.stop()}>Arrêter</button>}</div>
+      {(!speech.supported || !speech.selectedVoice || speech.error) && <p className="voice-notice" aria-live="polite">{speech.error || 'La voix n’est pas disponible sur cet appareil.'}</p>}
       {phase === 'history-error' ? <div className="conversation-error" role="alert"><p>Je n’arrive pas à retrouver notre conversation pour le moment.</p><button type="button" className="text-button" onClick={reload}>Réessayer</button></div> : null}
       <div className="transcript" ref={transcript} tabIndex="0" role="region" aria-label="Notre conversation" onScroll={() => {
         const area = transcript.current
@@ -115,8 +149,8 @@ export default function Companion() {
         if (nearBottom.current) setUnread(false)
       }}>
         {!history.length && phase === 'ready' && !receipt && <div className="conversation-empty"><h2>Je suis là{name ? `, ${name}` : ''}.</h2><p>Tu peux me parler comme tu le ferais naturellement.<br />Ou simplement prendre un moment.</p></div>}
-        {history.map(item => <article key={item.id} className={`transcript-entry transcript-entry--${item.role}`}><h2>{item.role === 'user' ? name || 'Toi' : 'PsychoSpace'}</h2><p>{item.content}</p></article>)}
-        {receipt && <><article className="transcript-entry transcript-entry--user"><h2>{name || 'Toi'}</h2><p>{receipt.message}</p></article><article className="transcript-entry transcript-entry--assistant"><h2>PsychoSpace</h2><p>{receipt.reply.content}</p></article></>}
+        {history.map(item => <article key={item.id} className={`transcript-entry transcript-entry--${item.role}`}><h2>{item.role === 'user' ? name || 'Toi' : 'PsychoSpace'}</h2><p>{item.content}</p>{item.role === 'assistant' && voiceControl(item)}</article>)}
+        {receipt && <><article className="transcript-entry transcript-entry--user"><h2>{name || 'Toi'}</h2><p>{receipt.message}</p></article><article className="transcript-entry transcript-entry--assistant"><h2>PsychoSpace</h2><p>{receipt.reply.content}</p>{voiceControl(receipt.reply)}</article></>}
       </div>
       {unread && <button type="button" className="recent-button" onClick={jumpToRecent}>Revenir aux derniers échanges ↓</button>}
       {phase === 'send-error' && <div className="conversation-error" role="alert"><p>{error === 'engine' ? 'Je n’arrive pas à accéder à mon moteur de conversation pour le moment.' : 'Je n’ai pas pu confirmer l’envoi de ton message.'}</p><p>Ton texte reste dans la zone de saisie. Tu peux réessayer ; je vérifierai d’abord notre conversation.</p></div>}

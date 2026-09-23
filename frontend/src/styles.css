@@ -12,3 +12,4 @@
 @media(min-width:801px) and (max-width:1100px){.nav-number{display:none}.nav-link{gap:8px;font-size:11px}}
 @media(max-width:520px){.sidebar nav{grid-template-columns:repeat(3,1fr)}.nav-link{font-size:10px;padding:8px 2px;gap:7px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.presence--speaking .presence-body{animation:voice-breath 2.1s ease-in-out infinite}.presence--speaking .orbit-one{animation:voice-wave 2.6s ease-out infinite}.presence--speaking .orbit-two{animation:voice-wave 2.6s ease-out .8s infinite}.presence--speaking .presence-glow{background:radial-gradient(ellipse,#c7d6ac29,transparent 68%)}@keyframes voice-breath{0%,100%{transform:scale(.99);filter:brightness(1.08)}50%{transform:scale(1.055);filter:brightness(1.22)}}@keyframes voice-wave{0%{transform:scale(.9);opacity:.65}100%{transform:scale(1.18);opacity:.12}}
