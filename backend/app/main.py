@@ -12,6 +12,8 @@ from .database import initialize_database
 from .routes.profile import router
 from .routes.checkins import router as checkins_router
 from .routes.sensors import router as sensors_router
+from .routes.baseline import router as baseline_router
+from .routes.drift import router as drift_router
 from .seed_loader import load_seeds
 
 logger = logging.getLogger(__name__)
@@ -29,6 +31,8 @@ def create_app(database_path: Path | None = None) -> FastAPI:
     application.include_router(router)
     application.include_router(checkins_router)
     application.include_router(sensors_router)
+    application.include_router(baseline_router)
+    application.include_router(drift_router)
 
     @application.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError):

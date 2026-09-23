@@ -1,6 +1,6 @@
 # Backend PsychoSpace V0.1
 
-API locale : `GET /health`, `GET /api/profile/{user_id}`, `POST /api/checkins`, `GET /api/checkins/{user_id}`, `POST /api/sensors` et `GET /api/sensors/{user_id}`. Les routes lisent et écrivent dans SQLite. Le profil reconvertit `interests` en tableau JSON. Un utilisateur ou profil absent renvoie 404 dans l'enveloppe d'erreur du contrat API. Les erreurs internes renvoient un message générique ; leurs détails restent dans les logs du serveur.
+API locale : santé, profil, check-ins, capteurs, baseline et analyse de dérive. Les dix routes disponibles sont visibles dans Swagger. Les routes lisent et écrivent dans SQLite. Le profil reconvertit `interests` en tableau JSON. Un utilisateur ou profil absent renvoie 404 dans l'enveloppe d'erreur du contrat API. Les erreurs internes renvoient un message générique ; leurs détails restent dans les logs du serveur.
 
 ## Installation et lancement
 
@@ -118,3 +118,42 @@ Utiliser ensuite les routes GET correspondantes avec `user_id = ASTRO-001`. Les 
 Les champs sont tous requis ; les champs supplémentaires, nombres sous forme de chaînes, booléens à la place des nombres et valeurs non finies sont refusés. Les cinq scores sont des entiers de 1 à 10 ; sommeil et activité sont positifs ou nuls. Les dates sont des chaînes ISO 8601 UTC terminées par `Z`, avec secondes et éventuellement 1 à 6 décimales. Les champs de capteur et les identifiants ne peuvent pas être vides.
 
 Une validation incorrecte renvoie **400**, avec `success: false` et `error.code: "invalid_data"`, conformément au contrat. Les tests supplémentaires couvrent ces cas, les nouveaux types de capteur, le tri, la séparation des utilisateurs et la persistance réelle dans des bases SQLite temporaires. Ils ne modifient pas la base de développement ni les seeds communs.
+
+## AI Integration
+
+Flux : **Check-ins + Sensors → SQLite → Baseline Engine → Drift Engine → adaptation → SQLite → FastAPI**. Le service `app/services/ai_service.py` transmet les lignes SQL aux fonctions existantes de `ai/core/`, sans dupliquer leurs formules ni lire les seeds pendant les requêtes. Les seeds restent réservés à l'initialisation. Aucune dépendance supplémentaire n'est nécessaire ; lancer le serveur depuis la racine permet d'importer `ai`.
+
+| Route | Comportement |
+| --- | --- |
+| `POST /api/baseline/{user_id}/calculate` | Calcule sur les sept premiers jours via le moteur IA, conserve les anciennes baselines et retourne la nouvelle avec 201. |
+| `GET /api/baseline/{user_id}` | Lit la baseline la plus récente selon calculated_at, puis id SQL à égalité. Aucun calcul implicite. 404 si absente. |
+| `POST /api/drift/{user_id}/analyze` | Analyse les trois derniers jours calendaires via le moteur, enregistre un événement et le retourne avec 200 si le niveau interne n'est pas stable. Sinon 204 sans corps ni nouvel événement. |
+| `GET /api/drift/{user_id}` | Lit l'historique chronologique ; désérialise affected_signals en tableau JSON. Tableau vide si aucun événement. |
+
+Un utilisateur absent renvoie 404. Des données insuffisantes, incomplètes ou incompatibles (dont plusieurs check-ins le même jour, non pris en charge par le moteur actuel) renvoient 400. Une baseline manquante lors de l'analyse renvoie 400 en demandant de la calculer au préalable. Une exception inattendue du moteur renvoie 500 sans détail interne. Les GET ne modifient rien. Les POST enregistrent leur résultat dans une transaction ; les check-ins et mesures restent inchangés. Une nouvelle demande explicite d'analyse peut créer un nouvel événement pour la même fenêtre : aucune déduplication n'est introduite.
+
+Le service fournit l'historique SQL nécessaire à la référence et aux capteurs ; le moteur sélectionne lui-même la fenêtre récente. Une fenêtre de trois jours partiellement renseignée reste analysable selon la règle de confiance du moteur, si les jours de référence sont disponibles. Il n'y a ni imputation ni recalcul silencieux de la baseline.
+
+### Adaptations explicites aux contrats
+
+- Le moteur calcule sur **0–100** ; `drift_score` de l'API est divisé par 100, car le contrat officiel exige **0–1**. Ainsi 94,75 devient 0,9475.
+- `mild` devient `low` ; `moderate` et `high` restent identiques. `stable` produit 204, conformément au contrat API, sans événement artificiel.
+- `affected_signals` devient la liste des noms des signaux. La liste est sérialisée en TEXT dans SQLite, puis restaurée à la lecture. Les détails par signal, `recent_window_days` et `sensor_context` restent internes : les contrats et le schéma ne prévoient pas ces champs. Le moteur reçoit bien movement, heart_rate et spo2 ; aucun de ces capteurs ne modifie son score.
+- Un événement reçoit un identifiant UUID préfixé `DRIFT-`, un `detected_at` UTC et `status: "open"`. L'explication descriptive du moteur est conservée sans interprétation médicale.
+
+### Dates et référence du prototype
+
+Le moteur utilise `calculated_at` comme **fin des données de référence**, alors que l'API stocke une **date de calcul**. Le service adapte uniquement ce champ dans la copie transmise au moteur : timestamp du dernier des `observation_days` premiers check-ins. Les moyennes enregistrées restent inchangées. Cette convention s'applique au prototype fondé sur les premiers jours ; la provenance des fenêtres devra être précisée avant d'utiliser d'autres stratégies de baseline.
+
+Le dataset fictif est daté de 2080, après l'horloge réelle du poste. Pour que la nouvelle baseline soit effectivement la plus récente, les dates enregistrées utilisent une horloge logique UTC : maximum entre l'heure réelle et les dates pertinentes (fin de référence ou dernières observations, dernier résultat enregistré), ces dernières étant avancées d'une microseconde. En démonstration, cela produit des dates simulées de 2080, **pas des heures réelles d'exécution**. Avec des données passées et une horloge à jour, l'heure réelle prévaut. Cette adaptation conserve le tri officiel par date sans modifier les seeds. Aucun changement n'est apporté au moteur.
+
+Dans Swagger, exécuter sans corps, avec `user_id = ASTRO-001`, successivement le POST baseline, le GET baseline, le POST drift puis le GET drift. Sur le dataset intact : observation_days = 7, score interne final 94,75/100, score API 0,9475 et niveau high. L'historique contient aussi les deux événements illustratifs préchargés, qui n'ont pas été calculés par ce moteur.
+
+Tests d'intégration et tests IA, depuis la racine :
+
+```powershell
+python -m unittest discover -s backend/tests -v
+python -m unittest discover -s ai/tests -v
+```
+
+Les tests bloquent les lectures de fichiers pendant certaines requêtes et modifient uniquement une base temporaire pour prouver que les résultats viennent de SQLite. Ils vérifient aussi la persistance, le traitement stable sans événement, la conservation des entrées et les erreurs du moteur.

@@ -82,6 +82,8 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(set(paths), {
             "/health", "/api/profile/{user_id}", "/api/checkins",
             "/api/checkins/{user_id}", "/api/sensors", "/api/sensors/{user_id}",
+            "/api/baseline/{user_id}", "/api/baseline/{user_id}/calculate",
+            "/api/drift/{user_id}", "/api/drift/{user_id}/analyze",
         })
         self.assertEqual(set(paths["/api/profile/{user_id}"]), {"get"})
 
