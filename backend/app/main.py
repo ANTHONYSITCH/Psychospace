@@ -16,6 +16,7 @@ from .routes.baseline import router as baseline_router
 from .routes.drift import router as drift_router
 from .routes.memories import router as memories_router
 from .routes.chat import router as chat_router
+from .routes.interventions import router as interventions_router
 from .seed_loader import load_seeds
 
 logger = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ def create_app(database_path: Path | None = None) -> FastAPI:
     application.include_router(drift_router)
     application.include_router(memories_router)
     application.include_router(chat_router)
+    application.include_router(interventions_router)
 
     @application.exception_handler(RequestValidationError)
     async def validation_error(request: Request, exc: RequestValidationError):
