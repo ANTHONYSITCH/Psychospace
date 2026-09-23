@@ -19,7 +19,7 @@ test('real FastAPI data, details, keyboard navigation and local requests', async
   await expect(page.locator('body')).not.toContainText(/\b(moderate|Overview|Show me why|diagnostic|maladie|risque psychologique|alerte critique)\b/i)
   await page.getByRole('button', { name: 'Moins de détails' }).click()
   await page.screenshot({ path: 'test-results/overview-desktop.png', fullPage: true })
-  for (const name of ['Mémoire', 'Accompagnement']) {
+  for (const name of ['Accompagnement']) {
     await page.getByRole('link', { name, exact: true }).click()
     await expect(page.getByRole('heading', { name: name + '.', exact: true })).toBeVisible()
     await expect(page.getByText('UN ESPACE PREND FORME')).toBeVisible()

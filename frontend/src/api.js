@@ -20,6 +20,29 @@ export async function loadOverview(signal) {
 
 export function loadProfile(signal) { return get('profile', signal, null) }
 
+export async function loadMemories(signal) {
+  const response = await fetch(`${API_PREFIX}/memories/${encodeURIComponent(DEMO_USER_ID)}`, { signal, headers: { Accept: 'application/json' } })
+  if (!response.ok) throw new Error('Memory unavailable')
+  const memories = await response.json()
+  if (!Array.isArray(memories)) throw new Error('Invalid memories')
+  return memories
+}
+
+export async function saveMemory(memory, editing) {
+  const response = await fetch(`${API_PREFIX}/memories${editing ? `/${encodeURIComponent(memory.id)}` : ''}`, {
+    method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(memory),
+  })
+  if (!response.ok) throw new Error('Memory not saved')
+  return response.json()
+}
+
+export async function forgetMemory(id) {
+  const response = await fetch(`${API_PREFIX}/memories/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  if (!response.ok) throw new Error('Memory not forgotten')
+  const result = await response.json()
+  if (result.success !== true) throw new Error('Memory not forgotten')
+}
+
 export async function loadEvolution(signal) {
   const [checkins, baseline, drift] = await Promise.all([
     get('checkins', signal, []), get('baseline', signal, null), get('drift', signal, []),

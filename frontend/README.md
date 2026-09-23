@@ -1,14 +1,42 @@
 # PsychoSpace · Foundation UI
 
-Phases 1 à 4A : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon et Mon évolution.
+Phases 1 à 5 : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon, Mon évolution, Empreinte de rythme et Mémoire.
 L’interface et les libellés d’accessibilité sont en français, avec dates et nombres
 au format français. Les noms techniques et les routes restent inchangés. Le niveau
 moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouton
 « Pourquoi ? » affiche l’explication réelle et le score sous la forme « 62 % ».
 Le dossier initial contenait seulement `.gitkeep` ; aucun framework ni style existant.
 React 19 + Vite 7, CSS natif, icônes SVG locales et polices système : aucun asset
-externe ni CDN à l'exécution. Memory et Care sont des
-pages d'attente, sans fonctionnalités métier.
+externe ni CDN à l'exécution. Accompagnement reste une page d'attente.
+
+## Mémoire — Phase 5
+
+`/#memory` lit les souvenirs via `GET /api/memories/ASTRO-001`. La constellation
+présente chaque souvenir dans un fragment focusable, avec une étoile dont
+l'intensité et la taille varient légèrement selon l'importance. Sur mobile, les
+fragments se suivent verticalement. Un dialogue natif assure le focus modal,
+Échap et le retour au fragment ; sa fermeture est bloquée pendant l'écriture.
+
+L'ajout comporte catégorie, information, importance de 1 à 10 et confirmation.
+Le contrat exige un identifiant client : UUID généré une seule fois à l'ouverture,
+avec `source=user` et date issue de l'horloge de mission. Le PUT transmet le contrat
+complet en préservant id, user_id, created_at et source. Les libellés et provenances
+sont centralisés dans `src/memory.js` ; les valeurs inconnues restent humaines.
+L'oubli exige une confirmation explicite. La disparition commence seulement après
+le succès du DELETE. Les erreurs conservent les données et le brouillon ; aucune
+écriture automatique ni extraction depuis le Compagnon.
+
+Pour le test réel depuis l'interface, exclusivement sur un souvenir temporaire :
+
+```powershell
+$env:PSYCHOSPACE_REAL_MEMORY = '1'
+npx playwright test tests/browser/memory.spec.js
+Remove-Item Env:PSYCHOSPACE_REAL_MEMORY
+```
+
+Le test vérifie le POST, le PUT puis le DELETE par GET, et compare intégralement
+les six souvenirs originaux avant/après. Sans cette variable, ce cycle est ignoré.
+Les simulations d'erreurs et de liste vide existent uniquement dans les tests.
 
 ## Mon évolution — Phase 4A
 
