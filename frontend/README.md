@@ -1,14 +1,37 @@
 # PsychoSpace · Foundation UI
 
-Phases 1 à 3 : shell de navigation, présence abstraite, vue d'ensemble, État du jour et Compagnon.
+Phases 1 à 4A : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon et Mon évolution.
 L’interface et les libellés d’accessibilité sont en français, avec dates et nombres
 au format français. Les noms techniques et les routes restent inchangés. Le niveau
 moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouton
 « Pourquoi ? » affiche l’explication réelle et le score sous la forme « 62 % ».
 Le dossier initial contenait seulement `.gitkeep` ; aucun framework ni style existant.
 React 19 + Vite 7, CSS natif, icônes SVG locales et polices système : aucun asset
-externe ni CDN à l'exécution. Evolution, Memory et Care sont des
+externe ni CDN à l'exécution. Memory et Care sont des
 pages d'attente, sans fonctionnalités métier.
+
+## Mon évolution — Phase 4A
+
+`/#evolution` lit exclusivement les GET checkins, baseline et drift d'ASTRO-001.
+Une trace SVG commune représente sommeil, énergie, fatigue et activité avec
+quatre motifs de trait. La référence douce correspond au rythme habituel.
+Le ratio `(valeur - référence) / référence` sert uniquement au dessin ; la
+sélection d'un jour affiche les valeurs originales et leurs unités.
+
+Les bilans sont triés chronologiquement, puis le dernier de chaque jour est
+présenté (précision des microsecondes conservée). Une période mensuelle évite
+d'écraser avril 2080 avec les anciens bilans de 2026, qui restent accessibles.
+L'axe respecte les timestamps et les journées absentes interrompent les traits.
+Une référence absente ou nulle masque seulement la comparaison concernée.
+Le repère utilise le `detected_at` du dernier drift réel ; son explication et
+ses signaux viennent de l'API. Aucun Drift Engine ni appel Ollama côté page.
+Le résumé décrit uniquement les comparaisons partagées par les trois derniers
+jours renseignés de la période, sans calculer de nouvelle détection.
+
+La sélection fonctionne au clic, au toucher et au clavier. Les libellés et
+valeurs complètent les couleurs ; la trace défile horizontalement sur tablette.
+Les tests navigateur vérifient les trois GET réels, les valeurs et la référence,
+le drift, les états vide/erreur/chargement et l'affichage étroit.
 
 ## Lancement local
 

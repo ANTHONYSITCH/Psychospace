@@ -20,6 +20,14 @@ export async function loadOverview(signal) {
 
 export function loadProfile(signal) { return get('profile', signal, null) }
 
+export async function loadEvolution(signal) {
+  const [checkins, baseline, drift] = await Promise.all([
+    get('checkins', signal, []), get('baseline', signal, null), get('drift', signal, []),
+  ])
+  if (!Array.isArray(checkins) || !Array.isArray(drift) || (baseline && typeof baseline !== 'object')) throw new Error('Invalid evolution')
+  return { checkins, baseline, drift }
+}
+
 export class ChatError extends Error {
   constructor(status) { super('Chat unavailable'); this.status = status }
 }
