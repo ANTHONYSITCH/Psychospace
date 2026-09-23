@@ -22,7 +22,7 @@ test('real FastAPI data, details, keyboard navigation and local requests', async
   for (const name of ['Accompagnement']) {
     await page.getByRole('link', { name, exact: true }).click()
     await expect(page.getByRole('heading', { name: name + '.', exact: true })).toBeVisible()
-    await expect(page.getByText('UN ESPACE PREND FORME')).toBeVisible()
+    await expect(page.getByText('Aucune proposition ne s’impose à toi.')).toBeVisible()
   }
   expect(errors).toEqual([])
   expect(requests.every(url => new URL(url).hostname === '127.0.0.1')).toBeTruthy()

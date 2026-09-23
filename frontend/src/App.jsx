@@ -5,6 +5,7 @@ import DailyCheckin from './components/DailyCheckin'
 import Companion from './components/Companion'
 import Evolution from './components/Evolution'
 import Memory from './components/Memory'
+import Care from './components/Care'
 import PsychoSpacePresence from './components/PsychoSpacePresence'
 
 const spaces = ['Overview', 'Pulse', 'Companion', 'Evolution', 'Memory', 'Care']
@@ -28,7 +29,7 @@ export default function App() {
       <div className="sidebar-bottom"><div className="quiet-mark" aria-hidden="true"><span /><span /><span /></div><p>Un peu plus près<br />de ton propre rythme.</p><div className="local-note"><span /> TOUT RESTE À BORD</div></div>
     </aside>
     <main id="main" ref={main} tabIndex="-1" className="main-content" key={page}>
-      {page === 'Overview' ? <Overview /> : page === 'Pulse' ? <DailyCheckin /> : page === 'Companion' ? <Companion /> : page === 'Evolution' ? <Evolution /> : page === 'Memory' ? <Memory /> : <><header className="page-header"><div><span className="eyebrow">TON ESPACE PERSONNEL</span><h1>{labels[page]}<span className="heading-dot">.</span></h1></div><span className="phase-tag">À VENIR</span></header><section className="placeholder"><PsychoSpacePresence /><span className="eyebrow">UN ESPACE PREND FORME</span><h2>La suite se prépare doucement.</h2><p>Cet espace n’est pas encore disponible.<br />En attendant, retrouve ta vue d’ensemble.</p><a href="#overview" className="primary-button">Retour à la vue d’ensemble <Icon name="arrow" /></a></section></>}
+      {page === 'Overview' ? <Overview /> : page === 'Pulse' ? <DailyCheckin /> : page === 'Companion' ? <Companion /> : page === 'Evolution' ? <Evolution /> : page === 'Memory' ? <Memory /> : page === 'Care' ? <Care /> : <><header className="page-header"><div><span className="eyebrow">TON ESPACE PERSONNEL</span><h1>{labels[page]}<span className="heading-dot">.</span></h1></div><span className="phase-tag">À VENIR</span></header><section className="placeholder"><PsychoSpacePresence /><span className="eyebrow">UN ESPACE PREND FORME</span><h2>La suite se prépare doucement.</h2><p>Cet espace n’est pas encore disponible.<br />En attendant, retrouve ta vue d’ensemble.</p><a href="#overview" className="primary-button">Retour à la vue d’ensemble <Icon name="arrow" /></a></section></>}
     </main>
   </div>
 }

@@ -20,6 +20,22 @@ export async function loadOverview(signal) {
 
 export function loadProfile(signal) { return get('profile', signal, null) }
 
+export async function loadInterventions(signal) {
+  const response = await fetch(`${API_PREFIX}/interventions/${encodeURIComponent(DEMO_USER_ID)}`, { signal, headers: { Accept: 'application/json' } })
+  if (!response.ok) throw new Error('Accompaniment unavailable')
+  const items = await response.json()
+  if (!Array.isArray(items)) throw new Error('Invalid accompaniments')
+  return items
+}
+
+export async function patchIntervention(id, change) {
+  const response = await fetch(`${API_PREFIX}/interventions/${encodeURIComponent(id)}`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(change), signal: AbortSignal.timeout(15000),
+  })
+  if (!response.ok) throw new Error('Choice not saved')
+  return response.json()
+}
+
 export async function loadMemories(signal) {
   const response = await fetch(`${API_PREFIX}/memories/${encodeURIComponent(DEMO_USER_ID)}`, { signal, headers: { Accept: 'application/json' } })
   if (!response.ok) throw new Error('Memory unavailable')

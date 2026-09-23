@@ -1,13 +1,45 @@
 # PsychoSpace · Foundation UI
 
-Phases 1 à 5 : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon, Mon évolution, Empreinte de rythme et Mémoire.
+Phases 1 à 6 : shell de navigation, présence abstraite, vue d'ensemble, État du jour, Compagnon, Mon évolution, Empreinte de rythme, Mémoire et Accompagnement.
 L’interface et les libellés d’accessibilité sont en français, avec dates et nombres
 au format français. Les noms techniques et les routes restent inchangés. Le niveau
 moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouton
 « Pourquoi ? » affiche l’explication réelle et le score sous la forme « 62 % ».
 Le dossier initial contenait seulement `.gitkeep` ; aucun framework ni style existant.
 React 19 + Vite 7, CSS natif, icônes SVG locales et polices système : aucun asset
-externe ni CDN à l'exécution. Accompagnement reste une page d'attente.
+externe ni CDN à l'exécution.
+
+## Accompagnement — Phase 6
+
+`/#care` lit `GET /api/interventions/ASTRO-001`. Le moment en cours le plus récent
+est prioritaire, puis la proposition non terminée la plus récente, puis le dernier
+moment terminé. L'historique permet de consulter chaque message original de l'API.
+Le tri conserve les microsecondes. Les types, dont les anciens types des seeds,
+sont traduits dans `src/care.js`, avec une formulation générique pour les inconnus.
+
+« Ça me va » envoie uniquement `{ accepted: true }` ; « J’ai terminé » envoie
+uniquement `{ completed: true }`. L'affichage change après succès du PATCH et
+utilise sa réponse. Pendant l'attente, les actions sont bloquées pour éviter les
+doubles soumissions. Les erreurs préservent l'état précédent et restent visibles.
+« Pas maintenant » masque la proposition localement, avec un bouton pour la
+retrouver ; aucun champ de refus ni écriture n'est ajouté. Aucune proposition
+n'est créée automatiquement, et aucun drift n'est recalculé.
+
+Le POST est réservé au test de démonstration explicite via l'API, sans formulaire
+technique dans l'application. Le test copie le message d'une intervention réelle
+dans un nouvel enregistrement à la date de mission, puis accepte et termine
+cette seule intervention depuis l'interface. Les originaux sont comparés par GET
+avant/après. L'API ne propose pas de DELETE d'intervention : l'enregistrement de
+démonstration reste dans l'historique, terminé.
+
+```powershell
+$env:PSYCHOSPACE_REAL_CARE = '1'
+npx playwright test tests/browser/care.spec.js
+Remove-Item Env:PSYCHOSPACE_REAL_CARE
+```
+
+Sans cette variable, le cycle d'écriture est ignoré. Les tests de panne et de
+réponse différée utilisent des interceptions uniquement dans le navigateur de test.
 
 ## Mémoire — Phase 5
 
