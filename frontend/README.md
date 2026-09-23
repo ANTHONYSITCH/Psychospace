@@ -1,13 +1,13 @@
 # PsychoSpace · Foundation UI
 
-Phases 1 et 2 : shell de navigation, présence abstraite, vue d'ensemble et État du jour.
+Phases 1 à 3 : shell de navigation, présence abstraite, vue d'ensemble, État du jour et Compagnon.
 L’interface et les libellés d’accessibilité sont en français, avec dates et nombres
 au format français. Les noms techniques et les routes restent inchangés. Le niveau
 moderate est formulé « Ton rythme évolue depuis quelques jours. » ; le bouton
 « Pourquoi ? » affiche l’explication réelle et le score sous la forme « 62 % ».
 Le dossier initial contenait seulement `.gitkeep` ; aucun framework ni style existant.
 React 19 + Vite 7, CSS natif, icônes SVG locales et polices système : aucun asset
-externe ni CDN à l'exécution. Companion, Evolution, Memory et Care sont des
+externe ni CDN à l'exécution. Evolution, Memory et Care sont des
 pages d'attente, sans fonctionnalités métier.
 
 ## Lancement local
@@ -56,7 +56,8 @@ Une date ou un mode invalide provoque un échec de soumission, sans retour silen
 
 `DEMO_USER_ID` est centralisé dans `src/config.js`. La vue d'ensemble appelle
 les quatre GET profile, baseline, drift et checkins. L'État du jour ajoute le POST
-checkins ; aucune génération Ollama ni écriture directe SQLite. L'accueil utilise le prénom reçu et l'heure locale du navigateur.
+checkins ; le Compagnon utilise GET et POST chat pour converser avec Ollama via
+FastAPI. Aucune écriture directe SQLite. L'accueil utilise le prénom reçu et l'heure locale du navigateur.
 Le dernier drift est sélectionné par detected_at UTC, microsecondes comprises,
 puis id ; aucune détection ou modification des scores côté UI. Un score 0.62 est
 affiché 62 % uniquement dans le panneau ouvert par « Pourquoi ? », avec un libellé
@@ -108,6 +109,51 @@ du 16 avril 2080 sont postérieurs aux seeds du 15 avril : le tri existant de la
 d'ensemble les retient comme récents. Les anciens bilans de 2026 sont conservés,
 ainsi que les tests de l'horloge réelle ; aucune migration ni suppression.
 
+## Compagnon — phase 3
+
+La page `/#companion` lit l'historique réel via `GET /api/chat/ASTRO-001` et présente
+un transcript chronologique, avec prénom issu du profil et signature PsychoSpace.
+Pas de bulles standard, de messages préremplis ni de réponse fabriquée côté UI.
+L'accueil vide est un texte d'interface, pas un message persisté. Les textes de
+conversation sont rendus comme du texte, sans HTML ni Markdown exécutable.
+
+Le textarea est labellisé ; Entrée envoie, Maj + Entrée insère une ligne, et une
+composition de texte en cours n'envoie pas. Un message vide est refusé. Le verrou
+d'envoi et les contrôles désactivés bloquent une seconde soumission simultanée.
+Le POST contient uniquement user_id et message, conformément au contrat. Les dates
+du chat restent celles du serveur, sans réécriture frontend ni date affichée :
+l'horloge de mission concerne les check-ins seulement.
+
+La présence passe attentive → thinking → attentive. Après 20 secondes, le texte
+d'attente change discrètement, sans pourcentage. Aucun timeout frontend n'est fixé
+pour le POST ; le backend maîtrise le délai de génération. Les GET d'historique ont
+un délai de 15 secondes. Pour un chargement à froid lent sur ce poste, le serveur
+existant peut être lancé avec `OLLAMA_TIMEOUT_SECONDS=300` dans son environnement,
+sans changer son code ni le modèle. Un backend réglé à 60 s peut toujours renvoyer
+une indisponibilité au chargement initial ; le frontend ne masque pas cet échec.
+
+Le brouillon reste dans le textarea pendant l'attente et après échec. Il n'est pas
+ajouté à l'historique avant confirmation. Après succès, la réponse réelle du POST
+est affichée, puis remplacée par l'historique GET contenant les identifiants serveur.
+Si ce GET échoue, le reçu réel reste visible et seule une actualisation est proposée,
+sans refaire le POST. Avant une reprise après échec, l'historique est relu : si le
+même nouvel échange y figure déjà, aucun POST supplémentaire n'est envoyé.
+Cette réconciliation limite les doublons mais ne remplace pas l'idempotence serveur :
+une connexion coupée alors que le serveur travaille encore, ou plusieurs onglets
+concurrents, peuvent laisser une ambiguïté. Aucun retry automatique.
+
+Le brouillon est conservé en mémoire tant que la page reste ouverte ; il n'est pas
+stocké sur disque et disparaît en quittant/rechargeant la page. Une requête déjà
+envoyée peut néanmoins se terminer côté serveur après navigation ; le prochain GET
+retrouve alors l'échange. Une panne initiale de GET est distinguée d'un historique
+vide et bloque l'envoi jusqu'au rétablissement de la lecture.
+
+Le transcript défile vers la réponse seulement si la lecture est proche du bas ;
+sinon un bouton permet de rejoindre les derniers échanges. La réduction des
+animations est respectée. « Conversation locale » et le volet de confidentialité
+expliquent le fonctionnement avec les seules catégories de contexte ; aucun prompt,
+identifiant de mémoire, score brut ou objet SQL n'est exposé.
+
 ## Vérification
 
 ```powershell
@@ -137,3 +183,24 @@ Ce test remplit l'interface, effectue un vrai POST et vérifie que le GET contie
 exactement les réponses et le timestamp envoyés. Les autres tests couvrent les
 bornes, le retour arrière, le clavier, le refus serveur, la relance, le blocage de
 double soumission et le responsive, sans écriture réelle.
+
+Pour autoriser un échange réel avec Ollama depuis le navigateur (plusieurs minutes
+possibles au premier chargement) :
+
+```powershell
+$env:PSYCHOSPACE_REAL_CHAT = '1'
+npx playwright test tests/browser/companion.spec.js
+Remove-Item Env:PSYCHOSPACE_REAL_CHAT
+```
+
+Les autres tests Compagnon simulent explicitement les cas vide, erreur, attente,
+réponse perdue et resynchronisation dans le navigateur de test uniquement. L'application
+ne contient aucun message simulé. Le test réel vérifie la réponse, la persistance
+par GET, les trois états de présence et affiche la durée ressentie côté interface.
+
+Validation locale du 23 septembre 2026 : POST réel depuis le Compagnon, réponse 200
+en 223,08 s côté interface (chargement initial inclus), deux messages confirmés par
+GET. Modèle inchangé et timeout backend configuré à 300 s uniquement dans le
+processus serveur de démonstration. Les trois états de présence ont été vérifiés.
+Build réussi, 12 tests unitaires et 16 tests navigateur réussis ; le test d'écriture
+réelle de check-in est resté désactivé pour cette phase.

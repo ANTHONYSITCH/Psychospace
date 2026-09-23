@@ -20,6 +20,37 @@ export async function loadOverview(signal) {
 
 export function loadProfile(signal) { return get('profile', signal, null) }
 
+export class ChatError extends Error {
+  constructor(status) { super('Chat unavailable'); this.status = status }
+}
+
+export async function getChatHistory(signal) {
+  const timeout = AbortSignal.timeout(15000)
+  const response = await fetch(`${API_PREFIX}/chat/${encodeURIComponent(DEMO_USER_ID)}`, {
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw new ChatError(response.status)
+  const history = await response.json()
+  if (!Array.isArray(history) || history.some(item => typeof item.id !== 'string'
+      || !['user', 'assistant'].includes(item.role) || typeof item.content !== 'string')) {
+    throw new ChatError(0)
+  }
+  return history
+}
+
+export async function sendChatMessage(message) {
+  // No frontend generation timeout and no automatic retry: the backend owns both.
+  const response = await fetch(`${API_PREFIX}/chat`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ user_id: DEMO_USER_ID, message }),
+  })
+  if (!response.ok) throw new ChatError(response.status)
+  const reply = await response.json()
+  if (reply.role !== 'assistant' || typeof reply.content !== 'string' || !reply.content.trim()) throw new ChatError(0)
+  return reply
+}
+
 export async function submitCheckin(answers) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 30000)
