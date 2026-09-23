@@ -80,12 +80,17 @@ class ProfileTests(unittest.TestCase):
     def test_only_requested_business_routes(self):
         paths = self.client.get("/openapi.json").json()["paths"]
         self.assertEqual(set(paths), {
+            "/api/chat", "/api/chat/{user_id}",
             "/health", "/api/profile/{user_id}", "/api/checkins",
             "/api/checkins/{user_id}", "/api/sensors", "/api/sensors/{user_id}",
             "/api/baseline/{user_id}", "/api/baseline/{user_id}/calculate",
             "/api/drift/{user_id}", "/api/drift/{user_id}/analyze",
+            "/api/memories/{user_id}", "/api/memories", "/api/memories/{memory_id}",
         })
         self.assertEqual(set(paths["/api/profile/{user_id}"]), {"get"})
+        self.assertEqual(set(paths["/api/memories/{user_id}"]), {"get"})
+        self.assertEqual(set(paths["/api/memories"]), {"post"})
+        self.assertEqual(set(paths["/api/memories/{memory_id}"]), {"put", "delete"})
 
     def test_partial_schema_is_not_overwritten(self):
         path = self.path.with_name("partial.db")

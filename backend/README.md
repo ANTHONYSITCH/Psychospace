@@ -1,6 +1,125 @@
 # Backend PsychoSpace V0.1
 
-API locale : santé, profil, check-ins, capteurs, baseline et analyse de dérive. Les dix routes disponibles sont visibles dans Swagger. Les routes lisent et écrivent dans SQLite. Le profil reconvertit `interests` en tableau JSON. Un utilisateur ou profil absent renvoie 404 dans l'enveloppe d'erreur du contrat API. Les erreurs internes renvoient un message générique ; leurs détails restent dans les logs du serveur.
+## PsychoSpace Companion
+
+`POST /api/chat` reçoit `user_id` et `message` (chaînes non vides) et retourne
+`user_id`, `role: "assistant"`, `content`, `timestamp` avec 200.
+`GET /api/chat/{user_id}` retourne les messages complets avec leur `id`, en ordre
+chronologique ; `[]` sans historique, 404 pour un utilisateur inconnu, 400 pour
+des données invalides. Exemple de corps :
+
+```json
+{"user_id": "ASTRO-001", "message": "Ça va, je suis juste fatigué."}
+```
+
+Ollama formule la réponse ; le Drift Engine reste seul responsable de
+`drift_score`, `level`, `affected_signals`, `explanation`. Le chat ne déclenche
+aucun recalcul, diagnostic ni intervention.
+
+```text
+Check-ins + Sensors
+        ↓
+SQLite
+        ↓
+Baseline + Drift Engine
+        ↓
+Profile + Memories + Context
+        ↓
+Ollama
+        ↓
+Human-centered response
+```
+
+Configurer `OLLAMA_URL` (défaut `http://localhost:11434`) et `OLLAMA_MODEL`
+(obligatoire, nom du modèle déjà installé localement). Le démarrage charge ces
+clés et les trois paramètres suivants depuis `.env.local` ; les variables du processus ont
+priorité. Aucun nom de modèle n'est codé dans la logique métier. L'ancien
+`OLLAMA_BASE_URL` du fichier d'exemple n'est pas utilisé par le compagnon.
+
+| Paramètre | Défaut | Utilisation |
+| --- | --- | --- |
+| `OLLAMA_TIMEOUT_SECONDS` | `60` | Délai HTTP en secondes, strictement positif ; connexion plafonnée à 5 s. |
+| `OLLAMA_NUM_PREDICT` | `160` | Maximum de tokens générés, entier positif. |
+| `OLLAMA_TEMPERATURE` | `0.3` | Température entre 0 et 2. |
+
+La fenêtre du modèle reste à 8 192 tokens. Le prompt demande 2 à 4 phrases,
+une seule proposition d'action principale et éventuellement une question courte.
+Le modèle n'est jamais remplacé automatiquement.
+
+Le client utilise HTTPX, déjà présent, et l'[API chat native Ollama](https://docs.ollama.com/api/chat)
+avec `stream: false`. Il accepte uniquement une adresse HTTP de boucle locale,
+ignore les proxies et refuse les redirections. Il vérifie `/api/show` avant
+chaque génération et refuse les modèles distants/cloud. Aucun téléchargement
+automatique, SDK cloud ou fallback distant. Sur le serveur Ollama, activer aussi
+`OLLAMA_NO_CLOUD=1` avant son lancement pour désactiver ses fonctions cloud
+([documentation Ollama](https://docs.ollama.com/faq)). Le modèle doit déjà être
+téléchargé pour fonctionner hors ligne.
+
+Le Context Builder lit uniquement SQLite pendant les requêtes : prénom et
+préférences, indicateurs principaux de la dernière baseline, dernier événement
+de dérive, trois derniers check-ins, jusqu'à douze mémoires prioritaires et six
+derniers messages. La sélection du drift trie `detected_at` par secondes puis
+fraction UTC décroissantes, et `id DESC` à date égale, avec `LIMIT 1` : ni ordre
+d'insertion, ni lecture des seeds, ni recalcul. L'id et la date sont disponibles
+pour vérifier la sélection mais ne sont pas envoyés au modèle. Le contexte envoyé
+omet âge, mission, métadonnées, timestamps et capteurs bruts. Les check-ins sont
+compactés en colonnes/lignes ; les mémoires gardent leur contenu sans métadonnées.
+L'explication conserve un extrait exact de 300 caractères maximum, marqué comme
+extrait si tronqué ; le texte complet du moteur reste inchangé dans SQLite.
+Le message courant est ajouté séparément, une seule fois.
+Les données absentes restent nulles ou vides, sans invention. Les mémoires du
+Memory Vault sont considérées comme autorisées en V0.1 ; seules celles de
+l'utilisateur sont transmises. Une mémoire supprimée n'est plus dans ce contexte.
+Le prompt interdit de réutiliser un souvenir absent du Vault, même si l'ancien
+historique le mentionne. Aucune conversation ne crée automatiquement de mémoire.
+
+La lecture SQLite matérialise toutes les lignes puis ferme complètement la
+connexion. Le contexte est assemblé en mémoire et Ollama est appelé sans aucune
+connexion ni transaction SQLite maintenue par la requête. Après génération, une
+nouvelle connexion ouvre une transaction courte `BEGIN IMMEDIATE` et insère les
+deux messages. Une erreur d'insertion annule les deux ; un échec Ollama n'enregistre
+aucun message. Les échanges antérieurs restent intacts. Ollama indisponible, modèle absent, timeout ou
+réponse invalide donnent **503**, extension demandée mais non mentionnée dans
+le contrat partagé inchangé. Le contexte est un instantané avant génération : les
+modifications concurrentes ne seront visibles qu'à la prochaine requête.
+
+Le logger `backend.app.services.ollama_client` émet au niveau INFO
+`Ollama generation completed in X.XX seconds`. La mesure couvre uniquement
+`POST /api/chat` vers Ollama et la validation de sa réponse, pas SQLite ni la
+vérification préalable `/api/show`. Aucun contenu privé ni prompt n'est loggé.
+Le premier appel peut charger le modèle ; le second bénéficie du modèle déjà en
+mémoire. Un poste lent peut nécessiter une valeur explicite supérieure à 60 s
+pour `OLLAMA_TIMEOUT_SECONDS`. Si les appels restent au-dessus de 30 s, le goulot
+est probablement l'inférence locale du modèle sur le matériel, et non SQLite.
+
+Mesure locale du 23 septembre 2026, deux POST HTTP consécutifs vers FastAPI avec
+le modèle inchangé `qwen3:4b-instruct-2507-q4_K_M` : **243,33 s** pour le premier
+appel (chargement initial inclus), **21,60 s** pour le second. Les deux ont renvoyé
+200 ; quatre messages ont été ajoutés atomiquement, sans modification des mémoires.
+Le prompt du premier appel comptait 898 tokens, contre 1 315 lors de l'ancien essai
+(historiques différents : cette comparaison n'isole pas le gain de latence).
+Le processus de mesure utilisait `OLLAMA_TIMEOUT_SECONDS=300` pour permettre le
+chargement à froid ; le défaut applicatif reste 60 s et `.env.local` est inchangé.
+Sur ce poste, configurer explicitement 300 s pour les démarrages à froid : le défaut
+de 60 s peut produire un 503 avant la fin du chargement. Le coût initial reste
+principalement celui d'Ollama et du matériel ; le second appel mesuré est sous 30 s.
+Un verrou d'écriture SQLite indépendant a été obtenu immédiatement pendant la
+génération réelle, puis annulé sans changement de données.
+
+Le prompt sépare FACTS et INFERENCES, impose des réponses brèves, sans diagnostic,
+sans invention de souvenirs et sans simulation de proches. Ces instructions ne
+garantissent pas toutes les sorties d'un modèle génératif. Les événements seed
+de 2080 sont fictifs et peuvent être décalés de l'horloge réelle ; le dernier
+événement enregistré ne prouve pas un état actuel. Aucune authentification n'est
+ajoutée dans cette V0.1. Les tests automatiques utilisent des bases temporaires et
+un faux Ollama, sans dépendre du modèle installé :
+
+```powershell
+python -m unittest discover -s backend/tests -v
+python -m unittest discover -s ai/tests -v
+```
+
+API locale : santé, profil, check-ins, capteurs, baseline, analyse de dérive et Memory Vault. Toutes les routes disponibles sont visibles dans Swagger. Les routes lisent et écrivent dans SQLite. Le profil reconvertit `interests` en tableau JSON. Un utilisateur ou profil absent renvoie 404 dans l'enveloppe d'erreur du contrat API. Les erreurs internes renvoient un message générique ; leurs détails restent dans les logs du serveur.
 
 ## Installation et lancement
 
@@ -28,7 +147,7 @@ Les dépendances directes sont FastAPI, Uvicorn, Pydantic (validation des donné
 
 Les chemins sont déterminés par `pathlib` depuis `config.py`, indépendamment du dossier courant. La base par défaut est `database/psychospace.db`, déjà ignorée par le `.gitignore` commun. L'import Python seul ne crée pas la base : l'initialisation a lieu au démarrage de FastAPI.
 
-La variable facultative `PSYCHOSPACE_DB_PATH` permet de choisir un autre fichier. Un chemin relatif est résolu depuis la racine du projet. `DATABASE_URL` et les fichiers `.env` ne sont pas interprétés dans cette version ; le point de configuration est centralisé pour une évolution ultérieure.
+La variable facultative `PSYCHOSPACE_DB_PATH` permet de choisir un autre fichier. Un chemin relatif est résolu depuis la racine du projet. `DATABASE_URL` et `.env` ne sont pas interprétés ; seules les cinq variables Ollama documentées de `.env.local` sont chargées au démarrage.
 
 Le vrai fichier `database/schema.sql` est lu et exécuté sans modification. Il contient sa propre transaction et n'est pas idempotent. Sur une base vide, il est exécuté directement. Sur une base existante, les définitions SQL des tables et index sont comparées à celles obtenues en exécutant le schéma officiel en mémoire. Si elles correspondent, aucune table n'est recréée. Un schéma partiel ou différent provoque un arrêt explicite sans suppression ni migration automatique. Cette comparaison est volontairement stricte : une structure équivalente écrite différemment peut demander une vérification manuelle.
 
@@ -157,3 +276,58 @@ python -m unittest discover -s ai/tests -v
 ```
 
 Les tests bloquent les lectures de fichiers pendant certaines requêtes et modifient uniquement une base temporaire pour prouver que les résultats viennent de SQLite. Ils vérifient aussi la persistance, le traitement stable sans événement, la conservation des entrées et les erreurs du moteur.
+
+## Memory Vault
+
+Le Memory Vault conserve les informations de personnalisation explicitement autorisées par l'astronaute. Pour cette V0.1, les mémoires présentes dans SQLite sont considérées comme autorisées, y compris les six mémoires initiales du dataset.
+
+"PsychoSpace uses only memories explicitly stored and visible to the astronaut. The astronaut can review, correct or delete them."
+
+| Route | Comportement |
+| --- | --- |
+| `GET /api/memories/{user_id}` | Consulte uniquement les mémoires de cet utilisateur, par created_at croissant, puis id à date égale. Renvoie 200 et `[]` si l'utilisateur existe sans mémoire, 404 s'il est inconnu. |
+| `POST /api/memories` | Ajoute un objet memory complet et renvoie cet objet avec 201. L'utilisateur doit exister ; un id déjà utilisé renvoie 400. |
+| `PUT /api/memories/{memory_id}` | Corrige category, content, importance et source, puis renvoie l'objet avec 200. Le corps complet est requis ; id, user_id et created_at doivent rester identiques, sinon 400. |
+| `DELETE /api/memories/{memory_id}` | Supprime réellement la ligne SQLite et renvoie 200 avec `{"success": true}`. Une mémoire inconnue renvoie 404, comme pour PUT. |
+
+L'oubli est persistant : la mémoire supprimée disparaît des GET suivants et n'est pas réimportée au redémarrage sur cette base existante. Elle ne doit plus servir à personnaliser les échanges futurs. Les fichiers seeds restent inchangés ; une nouvelle base vide charge à nouveau le dataset de démonstration.
+
+Les sept champs du contrat sont obligatoires. Les chaînes ne peuvent pas être vides ou composées seulement d'espaces ; importance est un entier de 1 à 10 ; created_at est une date ISO 8601 UTC avec suffixe Z (secondes et, éventuellement, 1 à 6 décimales). Les champs supplémentaires sont refusés avec 400. category et source restent des chaînes libres sans enum rigide.
+
+Le router `app/routes/memories.py`, enregistré dans `app/main.py`, utilise les connexions et validations existantes et des requêtes SQL paramétrées. Les requêtes lisent SQLite ; les seeds servent uniquement à initialiser une base vide. Les tests de `tests/test_memories.py` utilisent des bases temporaires et couvrent la validation, les corrections, l'oubli après redémarrage, le tri et la séparation des utilisateurs. Cette séparation filtre les données par utilisateur ; aucune authentification n'est ajoutée.
+
+### Essai dans Swagger
+
+Ouvrir `/docs`, consulter `GET /api/memories/ASTRO-001`, puis envoyer ce corps à `POST /api/memories` :
+
+```json
+{
+  "id": "MEM-DEMO-001",
+  "user_id": "ASTRO-001",
+  "category": "coping_strategy",
+  "content": "Listening to music helps Alex decompress after stressful situations.",
+  "importance": 4,
+  "source": "user",
+  "created_at": "2080-04-16T18:00:00Z"
+}
+```
+
+Pour corriger cette mémoire, envoyer le même objet complet à `PUT /api/memories/MEM-DEMO-001`, en remplaçant content par `Alex prefers quiet instrumental music.` et importance par `7`. Supprimer ensuite avec `DELETE /api/memories/MEM-DEMO-001`, puis refaire GET pour vérifier son absence.
+
+### Utilisation par Ollama
+
+L'architecture envisagée est :
+
+```text
+Profile
++ Baseline
++ Current Drift
++ Authorized Memories
++ Current Message
+        ↓
+Ollama
+        ↓
+Personalized PsychoSpace Response
+```
+
+Le compagnon Ollama utilise ce stockage contrôlé par l'utilisateur pour personnaliser ses réponses. Aucune extraction de souvenirs depuis les conversations, mémorisation automatique, surveillance cachée ou nouveau mécanisme de machine learning n'est ajouté.
