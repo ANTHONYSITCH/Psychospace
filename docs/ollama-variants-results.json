@@ -1,0 +1,245 @@
+{
+  "model": "qwen3:4b-instruct-2507-q4_K_M",
+  "warmups_excluded": [
+    {
+      "variant": "A",
+      "total_ms": 167094.825,
+      "ollama_load_ms": 64749.462
+    },
+    {
+      "variant": "B",
+      "total_ms": 97767.876,
+      "ollama_load_ms": 6.117
+    },
+    {
+      "variant": "C",
+      "total_ms": 51910.325,
+      "ollama_load_ms": 9.373
+    },
+    {
+      "variant": "D",
+      "total_ms": 51941.636,
+      "ollama_load_ms": 11.621
+    }
+  ],
+  "runs": [
+    {
+      "variant": "A",
+      "run": 1,
+      "prompt_chars": 3361,
+      "prompt_tokens": 1028,
+      "generated_tokens": 50,
+      "total_ms": 19736.822,
+      "tokens_per_second": 3.051,
+      "ollama_load_ms": 6.569,
+      "prompt_eval_ms": 333.016,
+      "eval_ms": 16390.159,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "La fatigue est à 8, comme ces derniers jours.  \nTu as dit que la musique t’aide à te détendre.  \nVoudrais-tu écouter une playlist de sons de nuit ou de constellations ?"
+    },
+    {
+      "variant": "A",
+      "run": 2,
+      "prompt_chars": 3361,
+      "prompt_tokens": 1028,
+      "generated_tokens": 54,
+      "total_ms": 23672.33,
+      "tokens_per_second": 2.658,
+      "ollama_load_ms": 5.073,
+      "prompt_eval_ms": 301.419,
+      "eval_ms": 20313.418,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "La fatigue est à 8 sur 10, comme ces derniers jours.  \nTu as dit que la musique t’aide à te détendre.  \nVoudrais-tu écouter une playlist de sons de nuit ou de constellations ?"
+    },
+    {
+      "variant": "A",
+      "run": 3,
+      "prompt_chars": 3361,
+      "prompt_tokens": 1028,
+      "generated_tokens": 54,
+      "total_ms": 23373.264,
+      "tokens_per_second": 2.704,
+      "ollama_load_ms": 8.287,
+      "prompt_eval_ms": 332.21,
+      "eval_ms": 19970.978,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "La fatigue est à 8 sur 10, comme ces derniers jours.  \nTu as dit que la musique t’aide à te détendre.  \nVoudrais-tu écouter une playlist de sons de nuit ou de constellations ?"
+    },
+    {
+      "variant": "B",
+      "run": 1,
+      "prompt_chars": 2742,
+      "prompt_tokens": 869,
+      "generated_tokens": 54,
+      "total_ms": 21694.942,
+      "tokens_per_second": 2.901,
+      "ollama_load_ms": 30.889,
+      "prompt_eval_ms": 296.748,
+      "eval_ms": 18616.885,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "Comme tu le dis, la fatigue est à 8 sur 10.  \nTu as dit que la musique t’aide à te détendre.  \nVoudrais-tu écouter une playlist de sons de nuit ou de constellations ?"
+    },
+    {
+      "variant": "B",
+      "run": 2,
+      "prompt_chars": 2742,
+      "prompt_tokens": 869,
+      "generated_tokens": 54,
+      "total_ms": 21475.526,
+      "tokens_per_second": 3.097,
+      "ollama_load_ms": 6.34,
+      "prompt_eval_ms": 343.883,
+      "eval_ms": 17438.685,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "Comme tu le dis, la fatigue est à 8 sur 10.  \nTu as dit que la musique t’aide à te détendre.  \nVoudrais-tu écouter une playlist de sons de nuit ou de constellations ?"
+    },
+    {
+      "variant": "B",
+      "run": 3,
+      "prompt_chars": 2742,
+      "prompt_tokens": 869,
+      "generated_tokens": 54,
+      "total_ms": 45127.331,
+      "tokens_per_second": 2.943,
+      "ollama_load_ms": 7.229,
+      "prompt_eval_ms": 504.788,
+      "eval_ms": 18350.408,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "Comme tu le dis, la fatigue est à 8 sur 10.  \nTu as dit que la musique t’aide à te détendre.  \nVoudrais-tu écouter une playlist de sons de nuit ou de constellations ?"
+    },
+    {
+      "variant": "C",
+      "run": 1,
+      "prompt_chars": 2027,
+      "prompt_tokens": 648,
+      "generated_tokens": 39,
+      "total_ms": 14414.901,
+      "tokens_per_second": 3.471,
+      "ollama_load_ms": 7.52,
+      "prompt_eval_ms": 241.435,
+      "eval_ms": 11237.27,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "Comprendu. La fatigue est un signal, pas une maladie.  \nTu veux que je te propose une courte séance de musique ou une activité physique douce ?"
+    },
+    {
+      "variant": "C",
+      "run": 2,
+      "prompt_chars": 2027,
+      "prompt_tokens": 648,
+      "generated_tokens": 44,
+      "total_ms": 13895.777,
+      "tokens_per_second": 4.048,
+      "ollama_load_ms": 5.377,
+      "prompt_eval_ms": 252.05,
+      "eval_ms": 10870.065,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "Comprendu. Tu as déjà noté une baisse d’activité et de sommeil ces derniers jours.  \nVoudrais-tu écouter une playlist douce pour te détendre ?"
+    },
+    {
+      "variant": "C",
+      "run": 3,
+      "prompt_chars": 2027,
+      "prompt_tokens": 648,
+      "generated_tokens": 37,
+      "total_ms": 12510.774,
+      "tokens_per_second": 3.917,
+      "ollama_load_ms": 7.694,
+      "prompt_eval_ms": 314.652,
+      "eval_ms": 9445.276,
+      "num_predict": 160,
+      "done_reason": "stop",
+      "text": "Comprendu. La fatigue est un signal, pas une maladie.  \nTu veux écouter une mélodie douce ou simplement discuter de ton jour ?"
+    },
+    {
+      "variant": "D",
+      "run": 1,
+      "prompt_chars": 2173,
+      "prompt_tokens": 686,
+      "generated_tokens": 36,
+      "total_ms": 14434.98,
+      "tokens_per_second": 3.148,
+      "ollama_load_ms": 7.154,
+      "prompt_eval_ms": 260.1,
+      "eval_ms": 11435.584,
+      "num_predict": 80,
+      "done_reason": "stop",
+      "text": "Comprendu. La fatigue est un signal, pas une maladie.  \nTu veux que je te propose une musique douce ou une activité physique légère ?"
+    },
+    {
+      "variant": "D",
+      "run": 2,
+      "prompt_chars": 2173,
+      "prompt_tokens": 686,
+      "generated_tokens": 59,
+      "total_ms": 21365.806,
+      "tokens_per_second": 3.263,
+      "ollama_load_ms": 7.703,
+      "prompt_eval_ms": 281.296,
+      "eval_ms": 18083.13,
+      "num_predict": 80,
+      "done_reason": "stop",
+      "text": "Comprendu. Tu as 5,6 heures de sommeil aujourd’hui.  \nPeut-être que du calme, de la musique ou une marche de 15 minutes t’aidera.  \nTu veux que je t’envoie une playlist ?"
+    },
+    {
+      "variant": "D",
+      "run": 3,
+      "prompt_chars": 2173,
+      "prompt_tokens": 686,
+      "generated_tokens": 46,
+      "total_ms": 16734.197,
+      "tokens_per_second": 3.39,
+      "ollama_load_ms": 7.669,
+      "prompt_eval_ms": 273.721,
+      "eval_ms": 13568.75,
+      "num_predict": 80,
+      "done_reason": "stop",
+      "text": "Comprendu. Tu as 5,6 heures de sommeil aujourd’hui.  \nPeut-être que 10 minutes de marche douce ou une chanson apaisante t’aideraient."
+    }
+  ],
+  "averages": {
+    "A": {
+      "prompt_chars": 3361,
+      "prompt_tokens": 1028,
+      "generated_tokens": 52.667,
+      "prompt_eval_ms": 322.215,
+      "eval_ms": 18891.518,
+      "total_ms": 22260.805,
+      "tokens_per_second": 2.804
+    },
+    "B": {
+      "prompt_chars": 2742,
+      "prompt_tokens": 869,
+      "generated_tokens": 54,
+      "prompt_eval_ms": 381.806,
+      "eval_ms": 18135.326,
+      "total_ms": 29432.6,
+      "tokens_per_second": 2.98
+    },
+    "C": {
+      "prompt_chars": 2027,
+      "prompt_tokens": 648,
+      "generated_tokens": 40,
+      "prompt_eval_ms": 269.379,
+      "eval_ms": 10517.537,
+      "total_ms": 13607.151,
+      "tokens_per_second": 3.812
+    },
+    "D": {
+      "prompt_chars": 2173,
+      "prompt_tokens": 686,
+      "generated_tokens": 47,
+      "prompt_eval_ms": 271.706,
+      "eval_ms": 14362.488,
+      "total_ms": 17511.661,
+      "tokens_per_second": 3.267
+    }
+  }
+}

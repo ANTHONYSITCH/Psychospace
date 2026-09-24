@@ -19,7 +19,8 @@ def load_local_ollama_config() -> None:
             if separator and key.strip() in {"OLLAMA_URL", "OLLAMA_MODEL", "OLLAMA_TIMEOUT_SECONDS",
                                              "OLLAMA_NUM_PREDICT", "OLLAMA_TEMPERATURE",
                                              "WHISPER_CLI_PATH", "WHISPER_MODEL_PATH", "FFMPEG_PATH",
-                                             "WHISPER_LANGUAGE", "WHISPER_TIMEOUT_SECONDS", "WHISPER_MAX_AUDIO_BYTES"}:
+                                             "WHISPER_LANGUAGE", "WHISPER_TIMEOUT_SECONDS", "WHISPER_MAX_AUDIO_BYTES",
+                                             "WHISPER_PERF_DEBUG", "WHISPER_THREADS", "CHAT_PERF_DEBUG"}:
                 os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
 
 

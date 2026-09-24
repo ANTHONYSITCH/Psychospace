@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from ..config import get_ollama_options
+from .chat_performance import current_performance
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,9 @@ def generate_reply(messages):
                     or data.get("done") is not True or data.get("error")):
                 raise OllamaUnavailable("Ollama a renvoyé une réponse invalide.")
             logger.info("Ollama generation completed in %.2f seconds", perf_counter() - started)
+            performance = current_performance.get()
+            if performance is not None:
+                performance.collect_ollama(data)
             return content.strip()
     except (httpx.HTTPError, ValueError) as exc:
         raise OllamaUnavailable("Ollama indisponible, modèle absent, délai dépassé ou réponse invalide.") from exc
