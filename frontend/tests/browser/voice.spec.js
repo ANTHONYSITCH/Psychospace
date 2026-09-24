@@ -115,13 +115,15 @@ test('real Ollama reply and Windows local voice follow the four presence states'
   await expect(page.getByRole('textbox')).toBeEnabled()
   await expect(page.locator('.presence--attentive')).toBeVisible()
   await page.getByRole('checkbox', { name: 'Réponses vocales' }).check()
-  await page.getByRole('textbox').fill('Ça va, je suis juste fatigué.')
+  await page.getByRole('textbox').fill(process.env.PSYCHOSPACE_REAL_MESSAGE || 'Ça va, je suis juste fatigué.')
   const response = page.waitForResponse(res => res.url().endsWith('/api/chat') && res.request().method() === 'POST', { timeout: 400000 })
+  const started = Date.now()
   await page.getByRole('button', { name: 'Envoyer', exact: true }).click()
   await expect(page.locator('.presence--thinking')).toBeVisible()
   const result = await response
   expect(result.status()).toBe(200)
   const reply = await result.json()
+  console.log('REAL_OLLAMA_REPLY', JSON.stringify({ elapsed_ms: Date.now() - started, reply }))
   await expect(page.locator('.transcript-entry--assistant p').last()).toHaveText(reply.content)
   // Native autoplay may be denied after a slow model response: a manual click is allowed.
   try { await expect(page.locator('.presence--speaking')).toBeVisible({ timeout: 10000 }) }

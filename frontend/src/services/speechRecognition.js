@@ -6,7 +6,7 @@ export function createRecognitionService(environment) {
   let supported = false
   try { supported = Boolean(Recognition && typeof Recognition.available === 'function' && 'processLocally' in new Recognition()) } catch { /* Fail closed. */ }
   let snapshot = { supported, availability: 'unavailable', checking: false, installing: false, starting: false, listening: false, interim: '', error: '' }
-  let current = null, generation = 0, checkVersion = 0, onFinal = null
+  let current = null, generation = 0, checkVersion = 0, onFinal = null, timer = null
   const listeners = new Set()
   function publish(change) { snapshot = { ...snapshot, ...change }; listeners.forEach(listener => listener(snapshot)) }
   async function check() {
@@ -33,6 +33,7 @@ export function createRecognitionService(environment) {
     finally { publish({ installing: false }) }
   }
   function abort() {
+    clearTimeout(timer); timer = null
     generation++
     const previous = current
     current = null; onFinal = null
@@ -65,7 +66,11 @@ export function createRecognitionService(environment) {
       if (recognition.processLocally !== true) throw new Error('Local mode not confirmed')
       recognition.lang = 'fr-FR'; recognition.interimResults = true; recognition.continuous = false
       current = recognition; onFinal = callback
-      recognition.onstart = () => { if (token === generation) publish({ starting: false, listening: true }) }
+      recognition.onstart = () => {
+        if (token !== generation) return
+        publish({ starting: false, listening: true })
+        timer = setTimeout(stop, 30000)
+      }
       recognition.onresult = event => {
         if (token !== generation) return
         const results = Array.from(event.results)

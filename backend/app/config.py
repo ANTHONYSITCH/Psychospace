@@ -11,13 +11,15 @@ SEEDS_PATH = PROJECT_ROOT / "database" / "seeds"
 
 
 def load_local_ollama_config() -> None:
-    """Read Ollama settings at startup; process environment takes precedence."""
+    """Read local engine settings at startup; process environment takes precedence."""
     path = PROJECT_ROOT / ".env.local"
     if path.is_file():
         for line in path.read_text(encoding="utf-8-sig").splitlines():
             key, separator, value = line.strip().partition("=")
             if separator and key.strip() in {"OLLAMA_URL", "OLLAMA_MODEL", "OLLAMA_TIMEOUT_SECONDS",
-                                             "OLLAMA_NUM_PREDICT", "OLLAMA_TEMPERATURE"}:
+                                             "OLLAMA_NUM_PREDICT", "OLLAMA_TEMPERATURE",
+                                             "WHISPER_CLI_PATH", "WHISPER_MODEL_PATH", "FFMPEG_PATH",
+                                             "WHISPER_LANGUAGE", "WHISPER_TIMEOUT_SECONDS", "WHISPER_MAX_AUDIO_BYTES"}:
                 os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
 
 

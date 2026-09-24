@@ -1,4 +1,4 @@
-/** Reusable visual presence. States: idle, attentive, listening, thinking, speaking, drift. No business logic. */
+/** Reusable visual presence. States: idle, attentive, listening, transcribing, thinking, speaking, drift. No business logic. */
 export default function PsychoSpacePresence({ state = 'idle', level = 'low' }) {
   return <div className={`presence presence--${state} presence--${level}`} aria-hidden="true">
     <div className="presence-glow" />

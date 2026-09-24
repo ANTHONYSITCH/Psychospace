@@ -1,6 +1,20 @@
 import { API_PREFIX, DEMO_USER_ID } from './config'
 import { missionTimestamp } from './utils/missionClock.js'
 
+export async function transcribeAudio(audioBlob, signal) {
+  // Audio must stay on this device, including when the app is opened over a LAN.
+  if (!['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) throw new Error('Local host required')
+  const response = await fetch(`${API_PREFIX}/voice/transcribe`, {
+    method: 'POST', body: audioBlob, redirect: 'error',
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(45000)]) : AbortSignal.timeout(45000),
+    headers: { 'Content-Type': audioBlob.type, Accept: 'application/json' },
+  })
+  if (!response.ok) throw new Error('Local transcription unavailable')
+  const result = await response.json()
+  if (typeof result.text !== 'string') throw new Error('Invalid transcription')
+  return result
+}
+
 async function get(resource, signal, empty) {
   const response = await fetch(`${API_PREFIX}/${resource}/${encodeURIComponent(DEMO_USER_ID)}`, { signal, headers: { Accept: 'application/json' } })
   if (response.status === 404) return empty
