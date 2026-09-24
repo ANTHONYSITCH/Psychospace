@@ -1,0 +1,115 @@
+import { API_PREFIX, DEMO_USER_ID } from './config'
+import { missionTimestamp } from './utils/missionClock.js'
+
+async function get(resource, signal, empty) {
+  const response = await fetch(`${API_PREFIX}/${resource}/${encodeURIComponent(DEMO_USER_ID)}`, { signal, headers: { Accept: 'application/json' } })
+  if (response.status === 404) return empty
+  if (!response.ok) throw new Error('Core unavailable')
+  return response.json()
+}
+
+export async function loadOverview(signal) {
+  const [profile, baseline, drift, checkins] = await Promise.all([
+    get('profile', signal, null), get('baseline', signal, null),
+    get('drift', signal, []), get('checkins', signal, []),
+  ])
+  if ((profile && typeof profile.first_name !== 'string') || !Array.isArray(drift) || !Array.isArray(checkins)
+      || (baseline && typeof baseline !== 'object')) throw new Error('Invalid overview')
+  return { profile, baseline, drift, checkins }
+}
+
+export function loadProfile(signal) { return get('profile', signal, null) }
+
+export async function loadInterventions(signal) {
+  const response = await fetch(`${API_PREFIX}/interventions/${encodeURIComponent(DEMO_USER_ID)}`, { signal, headers: { Accept: 'application/json' } })
+  if (!response.ok) throw new Error('Accompaniment unavailable')
+  const items = await response.json()
+  if (!Array.isArray(items)) throw new Error('Invalid accompaniments')
+  return items
+}
+
+export async function patchIntervention(id, change) {
+  const response = await fetch(`${API_PREFIX}/interventions/${encodeURIComponent(id)}`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(change), signal: AbortSignal.timeout(15000),
+  })
+  if (!response.ok) throw new Error('Choice not saved')
+  return response.json()
+}
+
+export async function loadMemories(signal) {
+  const response = await fetch(`${API_PREFIX}/memories/${encodeURIComponent(DEMO_USER_ID)}`, { signal, headers: { Accept: 'application/json' } })
+  if (!response.ok) throw new Error('Memory unavailable')
+  const memories = await response.json()
+  if (!Array.isArray(memories)) throw new Error('Invalid memories')
+  return memories
+}
+
+export async function saveMemory(memory, editing) {
+  const response = await fetch(`${API_PREFIX}/memories${editing ? `/${encodeURIComponent(memory.id)}` : ''}`, {
+    method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(memory),
+  })
+  if (!response.ok) throw new Error('Memory not saved')
+  return response.json()
+}
+
+export async function forgetMemory(id) {
+  const response = await fetch(`${API_PREFIX}/memories/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  if (!response.ok) throw new Error('Memory not forgotten')
+  const result = await response.json()
+  if (result.success !== true) throw new Error('Memory not forgotten')
+}
+
+export async function loadEvolution(signal) {
+  const [checkins, baseline, drift] = await Promise.all([
+    get('checkins', signal, []), get('baseline', signal, null), get('drift', signal, []),
+  ])
+  if (!Array.isArray(checkins) || !Array.isArray(drift) || (baseline && typeof baseline !== 'object')) throw new Error('Invalid evolution')
+  return { checkins, baseline, drift }
+}
+
+export class ChatError extends Error {
+  constructor(status) { super('Chat unavailable'); this.status = status }
+}
+
+export async function getChatHistory(signal) {
+  const timeout = AbortSignal.timeout(15000)
+  const response = await fetch(`${API_PREFIX}/chat/${encodeURIComponent(DEMO_USER_ID)}`, {
+    signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw new ChatError(response.status)
+  const history = await response.json()
+  if (!Array.isArray(history) || history.some(item => typeof item.id !== 'string'
+      || !['user', 'assistant'].includes(item.role) || typeof item.content !== 'string')) {
+    throw new ChatError(0)
+  }
+  return history
+}
+
+export async function sendChatMessage(message) {
+  // No frontend generation timeout and no automatic retry: the backend owns both.
+  const response = await fetch(`${API_PREFIX}/chat`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ user_id: DEMO_USER_ID, message }),
+  })
+  if (!response.ok) throw new ChatError(response.status)
+  const reply = await response.json()
+  if (reply.role !== 'assistant' || typeof reply.content !== 'string' || !reply.content.trim()) throw new ChatError(0)
+  return reply
+}
+
+export async function submitCheckin(answers) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 30000)
+  try {
+    const response = await fetch(`${API_PREFIX}/checkins`, {
+      method: 'POST', signal: controller.signal,
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ ...answers, user_id: DEMO_USER_ID, timestamp: missionTimestamp() }),
+    })
+    if (response.status !== 201) throw new Error('Save failed')
+    const result = await response.json()
+    if (result.success !== true || !Number.isInteger(result.checkin_id)) throw new Error('Invalid receipt')
+    return result
+  } finally { clearTimeout(timer) }
+}
