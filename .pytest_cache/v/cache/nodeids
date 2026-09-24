@@ -1,0 +1,4 @@
+[
+  "tests/test_checkin_api.py::test_create_checkin_success",
+  "tests/test_checkin_api.py::test_list_checkins"
+]
