@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   // Same-origin browser requests avoid requiring changes to FastAPI's CORS policy.
-  const proxy = { '/api': { target: env.VITE_API_URL || 'http://127.0.0.1:8000', changeOrigin: true } }
+  const proxy = {
+    '/api/voice': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+    '/api': { target: env.VITE_API_URL || 'http://127.0.0.1:8000', changeOrigin: true },
+  }
   return { plugins: [react()], server: { port: 5173, strictPort: true, proxy }, preview: { port: 4173, strictPort: true, proxy } }
 })

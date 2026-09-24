@@ -82,7 +82,7 @@ test('stop preserves draft, permission refusal preserves typing, navigation abor
 })
 test('local installation is explicit, failure is visible and success never starts microphone', async ({ page }) => {
   await mock(page, 'downloadable'); await page.goto('/#companion')
-  await expect(page.getByRole('button', { name: 'Parler à PsychoSpace' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Parler à PsychoSpace' })).toBeEnabled()
   await page.evaluate(() => { recTest.failInstall = true })
   await page.getByRole('button', { name: 'Installer la reconnaissance vocale française' }).click()
   await expect(page.getByText('Je n’ai pas pu installer la reconnaissance vocale française. Tu peux continuer à m’écrire.')).toBeVisible()
@@ -93,10 +93,9 @@ test('local installation is explicit, failure is visible and success never start
   await page.getByText('Ce que PsychoSpace utilise pour te répondre').click()
   await expect(page.getByText('Voix traitée sur cet appareil')).toBeVisible()
 })
-test('unavailable local recognition leaves keyboard enabled with no privacy claim', async ({ page }) => {
+test('unavailable browser recognition enables Whisper and leaves keyboard enabled', async ({ page }) => {
   await mock(page, 'unavailable'); await page.goto('/#companion')
-  await expect(page.getByRole('button', { name: 'Parler à PsychoSpace' })).toBeDisabled()
-  await expect(page.getByText(/La reconnaissance vocale locale n’est pas disponible/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Parler à PsychoSpace' })).toBeEnabled()
   await expect(page.getByRole('textbox')).toBeEnabled()
   await expect(page.getByText('Voix traitée sur cet appareil')).toHaveCount(0)
 })
@@ -112,7 +111,7 @@ test('real Windows Edge capability, with visible browser and no recognition fall
     })
     console.log('REAL_LOCAL_RECOGNITION', JSON.stringify(capability))
     if (capability.status === 'available') await expect(page.getByRole('button', { name: 'Parler à PsychoSpace' })).toBeEnabled()
-    else await expect(page.getByRole('button', { name: 'Parler à PsychoSpace' })).toBeDisabled()
+    else await expect(page.getByRole('button', { name: 'Parler à PsychoSpace' })).toBeEnabled()
     await expect(page.getByRole('textbox')).toBeEnabled()
     await page.screenshot({ path: 'test-results/recognition-real-windows.png', fullPage: true })
   } finally { await browser.close() }
