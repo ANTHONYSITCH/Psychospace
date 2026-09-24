@@ -7,8 +7,28 @@ const difficultyOptions = ['Non', 'Fatigue inhabituelle', 'Difficulté à dormir
 const compareOptions = ['Beaucoup mieux', 'Mieux', 'Similaire', 'Moins bien', 'Beaucoup moins bien']
 
 export function QuestionnairePage() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    astronaut_id: number | null
+    astronaut_first_name: string
+    astronaut_last_name: string
+    checkin_date: string
+    sleep_duration_hours: number
+    sleep_quality: number
+    fatigue: number
+    energy: number
+    stress: number
+    stress_source: string
+    mood: number
+    motivation: number
+    concentration: number
+    unusual_difficulty: string
+    overall_state: number
+    compared_to_yesterday: string
+    comment: string
+  }>({
     astronaut_id: 1,
+    astronaut_first_name: 'Thomas',
+    astronaut_last_name: 'Bernard',
     checkin_date: new Date().toISOString().slice(0, 10),
     sleep_duration_hours: 7.5,
     sleep_quality: 8,
@@ -28,7 +48,7 @@ export function QuestionnairePage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
-  const handleChange = (field: string, value: string | number) => {
+  const handleChange = (field: string, value: string | number | null) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -41,6 +61,9 @@ export function QuestionnairePage() {
     try {
       await createCheckin({
         ...form,
+        astronaut_id: form.astronaut_id ?? null,
+        astronaut_first_name: form.astronaut_first_name || null,
+        astronaut_last_name: form.astronaut_last_name || null,
         stress_source: form.stress_source || null,
         unusual_difficulty: form.unusual_difficulty || null,
         compared_to_yesterday: form.compared_to_yesterday || null,
@@ -69,8 +92,18 @@ export function QuestionnairePage() {
           </label>
 
           <label className="space-y-2 text-sm text-slate-300">
-            <span>Astronaute ID</span>
-            <input type="number" min={1} value={form.astronaut_id} onChange={(e) => handleChange('astronaut_id', Number(e.target.value))} className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white" />
+            <span>Prénom de l’astronaute</span>
+            <input type="text" value={form.astronaut_first_name} onChange={(e) => handleChange('astronaut_first_name', e.target.value)} className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white" />
+          </label>
+
+          <label className="space-y-2 text-sm text-slate-300">
+            <span>Nom de l’astronaute</span>
+            <input type="text" value={form.astronaut_last_name} onChange={(e) => handleChange('astronaut_last_name', e.target.value)} className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white" />
+          </label>
+
+          <label className="space-y-2 text-sm text-slate-300">
+            <span>Astronaute ID (optionnel)</span>
+            <input type="number" min={1} value={form.astronaut_id ?? ''} onChange={(e) => handleChange('astronaut_id', e.target.value === '' ? null : Number(e.target.value))} className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white" />
           </label>
 
           <label className="space-y-2 text-sm text-slate-300">

@@ -49,6 +49,37 @@ def test_create_checkin_success():
     assert data["comment"] == "Bonne journée, récupération correcte."
 
 
+def test_create_checkin_with_astronaut_names():
+    client = TestClient(app)
+    unique_date = (date.today() + timedelta(days=400)).isoformat()
+
+    payload = {
+        "astronaut_first_name": "Luna",
+        "astronaut_last_name": "Martin",
+        "checkin_date": unique_date,
+        "sleep_duration_hours": 6.8,
+        "sleep_quality": 7,
+        "fatigue": 5,
+        "energy": 7,
+        "stress": 4,
+        "stress_source": "routine",
+        "mood": 8,
+        "motivation": 9,
+        "concentration": 7,
+        "unusual_difficulty": "none",
+        "overall_state": 7,
+        "compared_to_yesterday": "stable",
+        "comment": "Semaine équilibrée."
+    }
+
+    response = client.post("/api/checkins", json=payload)
+
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["astronaut_first_name"] == "Luna"
+    assert data["astronaut_last_name"] == "Martin"
+
+
 def test_list_checkins():
     client = TestClient(app)
     response = client.get("/api/checkins")
@@ -56,3 +87,17 @@ def test_list_checkins():
     assert response.status_code == 200, response.text
     data = response.json()
     assert isinstance(data, list)
+
+
+def test_list_sensors_and_latest_readings():
+    client = TestClient(app)
+    sensors_response = client.get("/api/sensors")
+    assert sensors_response.status_code == 200, sensors_response.text
+    sensors = sensors_response.json()
+    assert isinstance(sensors, list)
+    if sensors:
+        sensor_id = sensors[0]["id"]
+        readings_response = client.get(f"/api/sensors/{sensor_id}/readings")
+        assert readings_response.status_code == 200, readings_response.text
+        payload = readings_response.json()
+        assert isinstance(payload, list)

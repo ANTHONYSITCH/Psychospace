@@ -38,6 +38,10 @@ export function DashboardPage() {
     return [...checkins].sort((a, b) => new Date(b.checkin_date).getTime() - new Date(a.checkin_date).getTime())[0]
   }, [checkins])
 
+  const astronautLabel = latest
+    ? [latest.astronaut_first_name, latest.astronaut_last_name].filter(Boolean).join(' ') || `#${latest.astronaut_id}`
+    : '—'
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -96,7 +100,7 @@ export function DashboardPage() {
             <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
               <h2 className="mb-4 text-lg font-medium text-white">Context mission</h2>
               <div className="space-y-3 text-sm text-slate-300">
-                <div className="flex justify-between border-b border-slate-800 pb-2"><span>Astronaute</span><span className="text-white">#{latest?.astronaut_id ?? '—'}</span></div>
+                <div className="flex justify-between border-b border-slate-800 pb-2"><span>Astronaute</span><span className="text-white">{astronautLabel}</span></div>
                 <div className="flex justify-between border-b border-slate-800 pb-2"><span>Dernier check-in</span><span className="text-white">{latest?.checkin_date ?? '—'}</span></div>
                 <div className="flex justify-between border-b border-slate-800 pb-2"><span>Source stress</span><span className="text-white">{latest?.stress_source ?? '—'}</span></div>
                 <div className="flex justify-between"><span>Évolution</span><span className="text-white">{latest?.compared_to_yesterday ?? '—'}</span></div>

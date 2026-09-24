@@ -9,3 +9,6 @@ export const apiClient = axios.create({
 })
 
 export const getHealth = () => apiClient.get('/health')
+export const getSensors = () => apiClient.get('/api/sensors')
+export const getSummary = () => apiClient.get('/api/summary')
+export const getCertificates = () => apiClient.get('/api/events/certify')

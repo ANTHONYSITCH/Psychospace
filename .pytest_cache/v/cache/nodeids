@@ -1,4 +1,6 @@
 [
   "tests/test_checkin_api.py::test_create_checkin_success",
-  "tests/test_checkin_api.py::test_list_checkins"
+  "tests/test_checkin_api.py::test_create_checkin_with_astronaut_names",
+  "tests/test_checkin_api.py::test_list_checkins",
+  "tests/test_checkin_api.py::test_list_sensors_and_latest_readings"
 ]

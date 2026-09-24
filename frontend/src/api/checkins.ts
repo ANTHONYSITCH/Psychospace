@@ -1,7 +1,9 @@
 import { apiClient } from './client'
 
 export type CheckinPayload = {
-  astronaut_id: number
+  astronaut_id?: number | null
+  astronaut_first_name?: string | null
+  astronaut_last_name?: string | null
   checkin_date: string
   sleep_duration_hours?: number | null
   sleep_quality?: number | null

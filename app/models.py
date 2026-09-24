@@ -16,6 +16,7 @@ class Mission(Base):
     created_at = Column(TIMESTAMP, nullable=True)
 
     astronauts = relationship("Astronaut", back_populates="mission")
+    sensors = relationship("Sensor", back_populates="mission")
 
 
 class Astronaut(Base):
@@ -69,6 +70,9 @@ class Sensor(Base):
     unit = Column(String(30), nullable=True)
     created_at = Column(TIMESTAMP, nullable=True)
 
+    mission = relationship("Mission", back_populates="sensors")
+    readings = relationship("SensorReading", back_populates="sensor")
+
 
 class SensorReading(Base):
     __tablename__ = "sensor_readings"
@@ -78,4 +82,19 @@ class SensorReading(Base):
     recorded_at = Column(TIMESTAMP, nullable=False)
     value = Column(Numeric(12, 4), nullable=False)
     quality_status = Column(String(30), default="valid")
+    created_at = Column(TIMESTAMP, nullable=True)
+
+    sensor = relationship("Sensor", back_populates="readings")
+
+
+class EventCertificate(Base):
+    __tablename__ = "event_certificates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String(100), nullable=False)
+    event_id = Column(String(100), nullable=False)
+    actor_name = Column(String(150), nullable=True)
+    previous_hash = Column(String(255), nullable=False)
+    current_hash = Column(String(255), nullable=False, unique=True)
+    event_payload = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP, nullable=True)
